@@ -1,6 +1,5 @@
-
 ;; TimeChain Marketplace: Teaching Slot Token Contract
-;; Basic implementation without external trait dependency
+;; Security-optimized implementation
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -8,18 +7,18 @@
 (define-constant ERR-NOT-FOUND (err u404))
 (define-constant ERR-ALREADY-EXISTS (err u409))
 (define-constant ERR-INVALID-INPUT (err u400))
+(define-constant ERR-INVALID-GRADE (err u402))
+(define-constant ERR-INVALID-ROOM (err u403))
+(define-constant ERR-INVALID-RECIPIENT (err u405))
+(define-constant ERR-INVALID-TOKEN (err u406))
 
 ;; Data Variables
 (define-data-var last-token-id uint u0)
 (define-data-var contract-paused bool false)
-(define-data-var base-uri (string-utf8 256) "https://api.timechain-marketplace.com/metadata/")
-
-;; Define Token Types
-(define-data-var token-type-teaching-slot uint u1)
 
 ;; Data Maps
 (define-map tokens 
-    {token-id: uint} 
+    {id: uint} 
     {
         owner: principal,
         time-block: uint,
@@ -32,60 +31,122 @@
     }
 )
 
-(define-map qualifications
-    {token-id: uint}
-    (list 10 (string-ascii 64))
-)
-
 (define-map teacher-slots 
-    {teacher: principal} 
+    {id: principal} 
     (list 100 uint)
 )
 
-;; Authorization Functions
+;; Validation Functions
+(define-private (is-valid-grade (grade uint))
+    (and (>= grade u1) (<= grade u12))  ;; Assuming grades 1-12
+)
+
+(define-private (is-valid-room (room-id uint))
+    (and (> room-id u0) (<= room-id u1000))  ;; Assuming max 1000 rooms
+)
+
+(define-private (is-valid-subject (subject (string-ascii 64)))
+    (and 
+        (> (len subject) u0)
+        (<= (len subject) u64)
+    )
+)
+
+(define-private (is-valid-token-id (token-id uint))
+    (and 
+        (> token-id u0)
+        (<= token-id (var-get last-token-id))
+    )
+)
+
+;; Validation Functions
+(define-private (is-valid-recipient (recipient principal))
+    (and 
+        (not (is-eq recipient tx-sender))  ;; Can't transfer to self
+        (not (is-eq recipient CONTRACT-OWNER))  ;; Can't transfer to contract
+    )
+)
+
+;; Read-Only Functions
+(define-read-only (get-token-owner (token-id uint))
+    (ok (get owner 
+        (default-to
+            {
+                owner: CONTRACT-OWNER,
+                time-block: u0,
+                subject: "",
+                grade: u0,
+                room-id: u0,
+                is-active: false,
+                created-at: u0,
+                updated-at: u0
+            }
+            (map-get? tokens {id: token-id})
+        )
+    ))
+)
+
+(define-read-only (get-slot-details (token-id uint))
+    (ok (default-to
+        {
+            owner: CONTRACT-OWNER,
+            time-block: u0,
+            subject: "",
+            grade: u0,
+            room-id: u0,
+            is-active: false,
+            created-at: u0,
+            updated-at: u0
+        }
+        (map-get? tokens {id: token-id})
+    ))
+)
+
+(define-read-only (get-teacher-slot-list (teacher principal))
+    (ok (default-to 
+        (list) 
+        (map-get? teacher-slots {id: teacher})
+    ))
+)
+
+;; Private Functions
 (define-private (is-contract-owner)
     (is-eq tx-sender CONTRACT-OWNER)
 )
 
-(define-private (is-token-owner (token-id uint))
-    (match (get-token-owner token-id)
-        owner (is-eq tx-sender owner)
-        false
+(define-private (is-valid-time-block (time-block uint))
+    (and 
+        (>= time-block block-height)
+        (<= time-block (+ block-height u52560))  ;; Max 1 year ahead (52560 blocks)
     )
 )
 
-;; Token Management Functions
-(define-private (get-token-owner (token-id uint))
-    (match (map-get? tokens {token-id: token-id})
-        token (some (get owner token))
-        none
-    )
-)
+;; Public Functions
+(define-public (create-teaching-slot 
+    (time-block uint)
+    (subject (string-ascii 64))
+    (grade uint)
+    (room-id uint))
 
-(define-read-only (get-last-token-id)
-    (ok (var-get last-token-id))
-)
+    (let 
+        (
+            (new-id (+ (var-get last-token-id) u1))
+            (current-slots (default-to (list) (map-get? teacher-slots {id: tx-sender})))
+        )
 
-(define-read-only (get-owner (token-id uint))
-    (match (map-get? tokens {token-id: token-id})
-        token (ok (some (get owner token)))
-        (err ERR-NOT-FOUND)
-    )
-)
+        ;; Input validation
+        (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-valid-time-block time-block) ERR-INVALID-INPUT)
+        (asserts! (is-valid-subject subject) ERR-INVALID-INPUT)
+        (asserts! (is-valid-grade grade) ERR-INVALID-GRADE)
+        (asserts! (is-valid-room room-id) ERR-INVALID-ROOM)
 
-;; Slot Operations
-(define-private (mint-token (recipient principal) 
-                          (time-block uint)
-                          (subject (string-ascii 64))
-                          (grade uint)
-                          (room-id uint)
-                          (quals (list 10 (string-ascii 64))))
-    (let ((token-id (+ (var-get last-token-id) u1)))
-        ;; Set token data
-        (map-set tokens 
-            {token-id: token-id}
+        ;; Create token with validated inputs
+        (map-set tokens
+            {id: new-id}
             {
-                owner: recipient,
+                owner: tx-sender,
                 time-block: time-block,
                 subject: subject,
                 grade: grade,
@@ -93,114 +154,68 @@
                 is-active: true,
                 created-at: block-height,
                 updated-at: block-height
-            }
-        )
-        
-        ;; Set qualifications separately
-        (map-set qualifications
-            {token-id: token-id}
-            quals
-        )
-        
-        ;; Update teacher's slot list
-        (match (map-get? teacher-slots {teacher: recipient})
-            existing-slots (map-set teacher-slots 
-                {teacher: recipient}
-                (unwrap-panic (as-max-len? (append existing-slots token-id) u100)))
-            (map-set teacher-slots {teacher: recipient} (list token-id))
-        )
-        
-        (var-set last-token-id token-id)
-        (ok token-id)
+            })
+
+        ;; Update teacher slots with bounds checking
+        (map-set teacher-slots 
+            {id: tx-sender} 
+            (unwrap! (as-max-len? (append current-slots new-id) u100) ERR-INVALID-INPUT))
+
+        (var-set last-token-id new-id)
+        (ok new-id)
     )
 )
 
-(define-public (create-teaching-slot 
-                (time-block uint)
-                (subject (string-ascii 64))
-                (grade uint)
-                (room-id uint)
-                (quals (list 10 (string-ascii 64))))
-    (begin
-        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
-        (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
-        (asserts! (>= time-block block-height) ERR-INVALID-INPUT)
-        (mint-token tx-sender time-block subject grade room-id quals)
+(define-public (transfer (token-id uint) (recipient principal))
+    (let 
+        (
+            (token (default-to 
+                {
+                    owner: CONTRACT-OWNER,
+                    time-block: u0,
+                    subject: "",
+                    grade: u0,
+                    room-id: u0,
+                    is-active: false,
+                    created-at: u0,
+                    updated-at: u0
+                }
+                (map-get? tokens {id: token-id})))
+            (sender-slots (default-to (list) (map-get? teacher-slots {id: tx-sender})))
+            (recipient-slots (default-to (list) (map-get? teacher-slots {id: recipient})))
+        )
+
+        (begin 
+            ;; Input validation
+            (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+            (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+            (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
+            (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+
+            ;; Check if recipient can receive more slots
+            (asserts! (is-some (as-max-len? (append recipient-slots token-id) u100))
+                ERR-INVALID-INPUT)
+
+            ;; Update recipient's slots
+            (map-set teacher-slots
+                {id: recipient}
+                (unwrap-panic (as-max-len? (append recipient-slots token-id) u100)))
+
+            ;; Update token ownership
+            (map-set tokens
+                {id: token-id}
+                (merge token {
+                    owner: recipient,
+                    updated-at: block-height
+                }))
+
+            (ok true))
     )
 )
 
-(define-public (transfer (token-id uint) (sender principal) (recipient principal))
-    (begin
-        ;; First check if contract is paused
-        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
-        
-        ;; Check authorization
-        (asserts! (is-token-owner token-id) ERR-NOT-AUTHORIZED)
-        (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
-        
-        ;; Get token data and process transfer
-        (match (map-get? tokens {token-id: token-id})
-            slot-data (begin
-                ;; Remove from sender's slots
-                (try! (match (map-get? teacher-slots {teacher: sender})
-                    sender-slots (begin
-                        (map-set teacher-slots 
-                            {teacher: sender}
-                            (filter (lambda (id) (not (is-eq id token-id))) 
-                                  sender-slots))
-                        (ok true))
-                    (err ERR-NOT-FOUND)))
-                
-                ;; Add to recipient's slots
-                (try! (match (map-get? teacher-slots {teacher: recipient})
-                    recipient-slots (begin
-                        (map-set teacher-slots 
-                            {teacher: recipient}
-                            (unwrap-panic (as-max-len? 
-                                (append recipient-slots token-id) 
-                                u100)))
-                        (ok true))
-                    (begin 
-                        (map-set teacher-slots 
-                            {teacher: recipient} 
-                            (list token-id))
-                        (ok true))))
-                
-                ;; Update token data
-                (map-set tokens 
-                    {token-id: token-id}
-                    (merge slot-data {
-                        owner: recipient,
-                        updated-at: block-height
-                    }))
-                
-                (ok true))
-            (err ERR-NOT-FOUND))
-    )
-)
-
-;; Administrative Functions
-(define-public (toggle-contract-pause)
+(define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
         (ok (var-set contract-paused (not (var-get contract-paused))))
-    )
-)
-
-;; Read-Only Functions
-(define-read-only (get-slot-details (token-id uint))
-    (match (map-get? tokens {token-id: token-id})
-        slot (ok {
-            slot: slot,
-            qualifications: (map-get? qualifications {token-id: token-id})
-        })
-        (err ERR-NOT-FOUND)
-    )
-)
-
-(define-read-only (get-teacher-slots (teacher principal))
-    (match (map-get? teacher-slots {teacher: teacher})
-        slots (ok slots)
-        (ok (list))
     )
 )
