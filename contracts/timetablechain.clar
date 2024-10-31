@@ -1,3 +1,4 @@
+
 ;; TimeChain Marketplace: Teaching Slot Token Contract
 ;; Basic implementation without external trait dependency
 
@@ -129,29 +130,41 @@
 )
 
 (define-public (transfer (token-id uint) (sender principal) (recipient principal))
-    (let ((token (map-get? tokens {token-id: token-id})))
-        (match token
+    (begin
+        ;; First check if contract is paused
+        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        
+        ;; Check authorization
+        (asserts! (is-token-owner token-id) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
+        
+        ;; Get token data and process transfer
+        (match (map-get? tokens {token-id: token-id})
             slot-data (begin
-                (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
-                (asserts! (is-token-owner token-id) ERR-NOT-AUTHORIZED)
-                (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
-                
                 ;; Remove from sender's slots
-                (match (map-get? teacher-slots {teacher: sender})
-                    sender-slots 
+                (try! (match (map-get? teacher-slots {teacher: sender})
+                    sender-slots (begin
                         (map-set teacher-slots 
                             {teacher: sender}
-                            (filter (lambda (id) (not (is-eq id token-id))) sender-slots))
-                    (err ERR-NOT-FOUND))
+                            (filter (lambda (id) (not (is-eq id token-id))) 
+                                  sender-slots))
+                        (ok true))
+                    (err ERR-NOT-FOUND)))
                 
                 ;; Add to recipient's slots
-                (match (map-get? teacher-slots {teacher: recipient})
-                    recipient-slots 
+                (try! (match (map-get? teacher-slots {teacher: recipient})
+                    recipient-slots (begin
                         (map-set teacher-slots 
                             {teacher: recipient}
                             (unwrap-panic (as-max-len? 
-                                (append recipient-slots token-id) u100)))
-                    (map-set teacher-slots {teacher: recipient} (list token-id)))
+                                (append recipient-slots token-id) 
+                                u100)))
+                        (ok true))
+                    (begin 
+                        (map-set teacher-slots 
+                            {teacher: recipient} 
+                            (list token-id))
+                        (ok true))))
                 
                 ;; Update token data
                 (map-set tokens 
@@ -160,6 +173,7 @@
                         owner: recipient,
                         updated-at: block-height
                     }))
+                
                 (ok true))
             (err ERR-NOT-FOUND))
     )
