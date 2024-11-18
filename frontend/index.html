@@ -14,7 +14,10 @@
             <li><a href="#how-it-works">How It Works</a></li>
             <li><a href="#slots">Marketplace</a></li>
         </ul>
-        <button id="connectWallet" class="btn-connect">Connect Wallet</button>
+        <div class="nav-right">
+            <span id="walletStatus" class="wallet-status"></span>
+            <button id="connectWallet" class="btn-connect">Connect Wallet</button>
+        </div>
     </nav>
 
     <header class="hero">
@@ -77,7 +80,21 @@
     </section>
 
     <footer>
-        <p>&copy; 2024 TimeChain Marketplace. Built on Stacks.</p>
+        <div class="footer-inner">
+            <div>
+                <h3>TimeChain</h3>
+                <p>Decentralized scheduling for education.</p>
+            </div>
+            <div>
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Smart Contracts</a></li>
+                    <li><a href="https://github.com/laykesydeoke/timetablechain">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2024 TimeChain Marketplace. Built on Stacks.</p>
     </footer>
 
     <script src="app.js"></script>
