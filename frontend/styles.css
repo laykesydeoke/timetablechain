@@ -247,13 +247,65 @@ body {
     padding: 2rem;
 }
 
+/* Nav right */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.wallet-status {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
 /* Footer */
 footer {
     background: var(--dark);
     color: rgba(255,255,255,0.6);
+    padding: 2.5rem 2rem 1rem;
+    font-size: 0.88rem;
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+}
+
+.footer-inner h3 {
+    color: var(--white);
+    margin-bottom: 0.4rem;
+}
+
+.footer-inner h4 {
+    color: var(--white);
+    margin-bottom: 0.5rem;
+}
+
+.footer-inner ul {
+    list-style: none;
+}
+
+.footer-inner ul li {
+    margin-bottom: 0.3rem;
+}
+
+.footer-inner a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+}
+
+.footer-inner a:hover {
+    color: var(--white);
+}
+
+.copyright {
     text-align: center;
-    padding: 1.5rem;
-    font-size: 0.85rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.82rem;
 }
 
 /* Mobile */
@@ -264,4 +316,5 @@ footer {
     .hero h1 { font-size: 1.7rem; }
     .steps { flex-direction: column; gap: 1.5rem; }
     .hero-buttons { flex-direction: column; align-items: center; }
+    .footer-inner { flex-direction: column; gap: 1.5rem; }
 }
