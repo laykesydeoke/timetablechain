@@ -1,5 +1,5 @@
 ;; TimeChain Marketplace: Teaching Slot Token Contract
-;; Security-optimized implementation
+;; Clarity 4 - Security-optimized implementation
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -116,8 +116,8 @@
 
 (define-private (is-valid-time-block (time-block uint))
     (and 
-        (>= time-block block-height)
-        (<= time-block (+ block-height u52560))  ;; Max 1 year ahead (52560 blocks)
+        (>= time-block stacks-block-height)
+        (<= time-block (+ stacks-block-height u52560))  ;; Max 1 year ahead (52560 blocks)
     )
 )
 
@@ -152,8 +152,8 @@
                 grade: grade,
                 room-id: room-id,
                 is-active: true,
-                created-at: block-height,
-                updated-at: block-height
+                created-at: stacks-block-height,
+                updated-at: stacks-block-height
             })
 
         ;; Update teacher slots with bounds checking
@@ -206,7 +206,7 @@
                 {id: token-id}
                 (merge token {
                     owner: recipient,
-                    updated-at: block-height
+                    updated-at: stacks-block-height
                 }))
 
             (ok true))
