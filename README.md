@@ -9,9 +9,15 @@ A decentralized application built on the Stacks blockchain for managing and trad
 - **Transparent History** - Immutable record of all exchanges on-chain
 - **Quick Substitution** - Real-time marketplace for schedule coverage
 
+## Tech Stack
+
+- **Clarity**: Version 4
+- **Testing**: Vitest with Clarinet SDK
+- **Frontend**: Static HTML/CSS/JS with Stacks.js
+
 ## Prerequisites
 
-- Node.js (v14+)
+- Node.js (v18+)
 - Clarinet CLI
 - Hiro Wallet
 
@@ -67,6 +73,7 @@ The `timetablechain.clar` contract supports:
 
 - [x] Core smart contract
 - [x] Frontend landing page
+- [x] Clarity 4 migration
 - [ ] Mobile app
 - [ ] Cross-school trading
 - [ ] Analytics dashboard
