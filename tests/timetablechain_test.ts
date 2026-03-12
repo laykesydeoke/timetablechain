@@ -1,80 +1,336 @@
 import { describe, expect, it } from "vitest";
 import { Cl } from "@stacks/transactions";
+import { simnet } from "./setup";
 
-const accounts = simnet.getAccounts();
-const deployer = accounts.get("deployer")!;
-const wallet1 = accounts.get("wallet_1")!;
-const wallet2 = accounts.get("wallet_2")!;
+const deployer = simnet.deployer;
+const wallet1 = simnet.getAccounts().get("wallet_1")!;
+const wallet2 = simnet.getAccounts().get("wallet_2")!;
 
 describe("timetablechain", () => {
-    it("creates a teaching slot", () => {
-        const result = simnet.callPublicFn(
-            "timetablechain",
-            "create-teaching-slot",
-            [Cl.uint(100), Cl.stringAscii("Mathematics"), Cl.uint(10), Cl.uint(101)],
-            deployer
-        );
-        expect(result.result).toBeOk(Cl.uint(1));
+  describe("slot creation", () => {
+    it("allows deployer to create a slot", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Mathematics"), Cl.uint(10), Cl.uint(101)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.uint(1));
     });
 
-    it("retrieves slot details", () => {
-        simnet.callPublicFn(
-            "timetablechain",
-            "create-teaching-slot",
-            [Cl.uint(100), Cl.stringAscii("Physics"), Cl.uint(11), Cl.uint(205)],
-            deployer
-        );
+    it("allows authorized teacher to create a slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
 
-        const details = simnet.callReadOnlyFn(
-            "timetablechain",
-            "get-slot-details",
-            [Cl.uint(1)],
-            deployer
-        );
-        expect(details.result).toBeOk(expect.objectContaining({}));
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Physics"), Cl.uint(11), Cl.uint(205)],
+        wallet1
+      );
+      expect(result.result).toBeOk(Cl.uint(2));
     });
 
+    it("blocks unauthorized user from creating slots", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("History"), Cl.uint(9), Cl.uint(103)],
+        wallet2
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+
+    it("rejects invalid grade", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(15), Cl.uint(101)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(402));
+    });
+
+    it("rejects invalid room", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Music"), Cl.uint(5), Cl.uint(0)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(403));
+    });
+
+    it("rejects empty subject", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii(""), Cl.uint(5), Cl.uint(101)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(400));
+    });
+  });
+
+  describe("slot details", () => {
+    it("returns slot details for existing token", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Biology"), Cl.uint(10), Cl.uint(301)],
+        deployer
+      );
+
+      const details = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slot-details",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(details.result).toBeOk(
+        expect.objectContaining({
+          type: expect.any(Number),
+        })
+      );
+    });
+
+    it("returns error for nonexistent token", () => {
+      const details = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slot-details",
+        [Cl.uint(999)],
+        deployer
+      );
+      expect(details.result).toBeErr(Cl.uint(404));
+    });
+
+    it("returns error for nonexistent token owner", () => {
+      const owner = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-token-owner",
+        [Cl.uint(999)],
+        deployer
+      );
+      expect(owner.result).toBeErr(Cl.uint(404));
+    });
+  });
+
+  describe("transfer", () => {
     it("transfers slot to another teacher", () => {
-        simnet.callPublicFn(
-            "timetablechain",
-            "create-teaching-slot",
-            [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(9), Cl.uint(103)],
-            deployer
-        );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(9), Cl.uint(103)],
+        deployer
+      );
 
-        const transfer = simnet.callPublicFn(
-            "timetablechain",
-            "transfer",
-            [Cl.uint(1), Cl.principal(wallet1)],
-            deployer
-        );
-        expect(transfer.result).toBeOk(Cl.bool(true));
+      const transfer = simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(wallet1)],
+        deployer
+      );
+      expect(transfer.result).toBeOk(Cl.bool(true));
+
+      // Verify new owner
+      const owner = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-token-owner",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(owner.result).toBeOk(Cl.principal(wallet1));
+    });
+
+    it("removes token from sender slot list", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(8), Cl.uint(101)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Science"), Cl.uint(7), Cl.uint(102)],
+        deployer
+      );
+
+      // Transfer first slot
+      simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(wallet1)],
+        deployer
+      );
+
+      // Deployer should only have slot 2
+      const deployerSlots = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-slot-list",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(deployerSlots.result).toBeOk(Cl.list([Cl.uint(2)]));
+
+      // Wallet1 should have slot 1
+      const wallet1Slots = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-slot-list",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(wallet1Slots.result).toBeOk(Cl.list([Cl.uint(1)]));
     });
 
     it("blocks transfer from non-owner", () => {
-        simnet.callPublicFn(
-            "timetablechain",
-            "create-teaching-slot",
-            [Cl.uint(100), Cl.stringAscii("Chemistry"), Cl.uint(12), Cl.uint(301)],
-            deployer
-        );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Chemistry"), Cl.uint(12), Cl.uint(301)],
+        deployer
+      );
 
-        const transfer = simnet.callPublicFn(
-            "timetablechain",
-            "transfer",
-            [Cl.uint(1), Cl.principal(wallet2)],
-            wallet1
-        );
-        expect(transfer.result).toBeErr(Cl.uint(401));
+      const transfer = simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(wallet2)],
+        wallet1
+      );
+      expect(transfer.result).toBeErr(Cl.uint(401));
     });
 
+    it("blocks self-transfer", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("PE"), Cl.uint(6), Cl.uint(500)],
+        deployer
+      );
+
+      const transfer = simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(deployer)],
+        deployer
+      );
+      expect(transfer.result).toBeErr(Cl.uint(405));
+    });
+
+    it("blocks transfer of nonexistent token", () => {
+      const transfer = simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(999), Cl.principal(wallet1)],
+        deployer
+      );
+      expect(transfer.result).toBeErr(Cl.uint(404));
+    });
+  });
+
+  describe("admin controls", () => {
     it("toggles contract pause", () => {
-        const result = simnet.callPublicFn(
-            "timetablechain",
-            "toggle-pause",
-            [],
-            deployer
-        );
-        expect(result.result).toBeOk(Cl.bool(true));
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "toggle-pause",
+        [],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.bool(true));
     });
+
+    it("blocks non-owner from pausing", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "toggle-pause",
+        [],
+        wallet1
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+
+    it("blocks slot creation when paused", () => {
+      simnet.callPublicFn("timetablechain", "toggle-pause", [], deployer);
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(5), Cl.uint(101)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+
+    it("authorizes and revokes teachers", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      const authorized = simnet.callReadOnlyFn(
+        "timetablechain",
+        "is-teacher-authorized",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(authorized.result).toBeOk(Cl.bool(true));
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "revoke-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      const revoked = simnet.callReadOnlyFn(
+        "timetablechain",
+        "is-teacher-authorized",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(revoked.result).toBeOk(Cl.bool(false));
+    });
+  });
+
+  describe("deactivation", () => {
+    it("allows owner to deactivate slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(3), Cl.uint(401)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.bool(true));
+    });
+
+    it("blocks non-owner from deactivating", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(3), Cl.uint(401)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        wallet1
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+  });
 });
