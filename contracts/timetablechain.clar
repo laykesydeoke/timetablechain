@@ -284,3 +284,22 @@
 
 (define-read-only (get-teacher-count)
   (var-get last-token-id))
+
+;; Governance: parameter management
+(define-data-var max-slots-per-teacher uint u100)
+(define-data-var min-time-block uint u1)
+(define-data-var governance-action-count uint u0)
+
+(define-read-only (get-governance-params)
+  {
+    max-slots-per-teacher: (var-get max-slots-per-teacher),
+    min-time-block: (var-get min-time-block),
+    governance-actions: (var-get governance-action-count)
+  })
+
+(define-public (set-max-slots-per-teacher (max uint))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (var-set max-slots-per-teacher max)
+    (var-set governance-action-count (+ (var-get governance-action-count) u1))
+    (ok true)))
