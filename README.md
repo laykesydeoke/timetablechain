@@ -196,3 +196,13 @@ Configurable validation rules for teaching slots:
 npm run test:validation
 npm run test:validation-rules
 ```
+
+## Slot Pricing
+
+Configurable pricing for teaching slots:
+- Default price
+- Per-slot overrides
+
+```bash
+npm run test:pricing
+```
