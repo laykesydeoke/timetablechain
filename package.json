@@ -29,7 +29,10 @@
     "test:perf-edge": "vitest run tests/perf_edge_test.ts tests/perf_invariant_test.ts tests/perf_full_test.ts",
     "test:access": "vitest run tests/access_default_test.ts tests/access_grant_test.ts tests/access_revoke_test.ts",
     "test:access-roles": "vitest run tests/admin_role_test.ts tests/role_count_test.ts tests/access_multi_admin_test.ts",
-    "test:access-edge": "vitest run tests/access_edge_test.ts tests/access_invariant_test.ts tests/access_full_test.ts"
+    "test:access-edge": "vitest run tests/access_edge_test.ts tests/access_invariant_test.ts tests/access_full_test.ts",
+    "test:validation": "vitest run tests/validation_default_test.ts tests/validation_params_test.ts tests/validation_toggle_test.ts",
+    "test:validation-rules": "vitest run tests/slot_rule_test.ts tests/duration_range_test.ts tests/validation_duration_range_test.ts",
+    "test:validation-edge": "vitest run tests/validation_edge_test.ts tests/validation_invariant_test.ts tests/validation_full_test.ts"
   },
   "devDependencies": {
     "@hirosystems/clarinet-sdk": "^2.9.0",
