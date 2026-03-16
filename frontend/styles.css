@@ -370,3 +370,10 @@ footer {
     border-top: 1px solid #1a2030;
     padding: 1.5rem 3rem;
 }
+
+/* Tier info section */
+#tier-info {
+    background: #0a1020;
+    border-top: 1px solid #1a2540;
+    padding: 1.5rem 3rem;
+}
