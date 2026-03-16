@@ -230,3 +230,11 @@ exhist feature.
 ```bash
 npm run test:exhist
 ```
+
+## categ
+
+categ feature.
+
+```bash
+npm run test:categ
+```
