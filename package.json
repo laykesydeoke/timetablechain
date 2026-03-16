@@ -39,7 +39,8 @@
     "test:template": "vitest run tests/template_t1.ts tests/template_t2.ts tests/template_t3.ts",
     "test:exhist": "vitest run tests/exhist_t1.ts tests/exhist_t2.ts tests/exhist_t3.ts",
     "test:categ": "vitest run tests/categ_t1.ts tests/categ_t2.ts tests/categ_t3.ts",
-    "test:rating": "vitest run tests/rating_t1.ts tests/rating_t2.ts tests/rating_t3.ts"
+    "test:rating": "vitest run tests/rating_t1.ts tests/rating_t2.ts tests/rating_t3.ts",
+    "test:batch": "vitest run tests/batch_t1.ts tests/batch_t2.ts tests/batch_t3.ts"
   },
   "devDependencies": {
     "@hirosystems/clarinet-sdk": "^2.9.0",
