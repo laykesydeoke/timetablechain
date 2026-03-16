@@ -366,3 +366,28 @@
     governance-actions: (var-get governance-action-count),
     snapshot-count: (var-get snapshot-count)
   })
+
+;; Enhanced emergency pause tracking
+(define-data-var pause-count uint u0)
+(define-data-var last-pause-block uint u0)
+
+(define-read-only (get-pause-state)
+  {
+    is-paused: (var-get contract-paused),
+    pause-count: (var-get pause-count),
+    last-pause-block: (var-get last-pause-block)
+  })
+
+(define-public (emergency-pause)
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (var-set contract-paused true)
+    (var-set pause-count (+ (var-get pause-count) u1))
+    (var-set last-pause-block stacks-block-height)
+    (ok true)))
+
+(define-public (emergency-resume)
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (var-set contract-paused false)
+    (ok true)))
