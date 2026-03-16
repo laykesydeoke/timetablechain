@@ -554,3 +554,28 @@
       (map-set exchange-history id { from: from, to: to, slot-id: slot-id, exchanged-at: stacks-block-height, exchange-type: exchange-type })
       (var-set exchange-count id)
       (ok id))))
+
+;; Slot category system
+(define-map slot-categories uint { name: (string-ascii 32), active: bool, slot-count: uint })
+(define-data-var category-count uint u0)
+(define-map slot-category-assignments uint uint)
+
+(define-read-only (get-category-stats)
+  { category-count: (var-get category-count) })
+
+(define-read-only (get-category (id uint))
+  (map-get? slot-categories id))
+
+(define-public (create-category (name (string-ascii 32)))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (let ((id (+ (var-get category-count) u1)))
+      (map-set slot-categories id { name: name, active: true, slot-count: u0 })
+      (var-set category-count id)
+      (ok id))))
+
+(define-public (assign-category (slot-id uint) (category-id uint))
+  (begin
+    (asserts\! (<= category-id (var-get category-count)) (err u1801))
+    (map-set slot-category-assignments slot-id category-id)
+    (ok true)))
