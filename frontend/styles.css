@@ -356,3 +356,10 @@ footer {
     font-weight: 700;
     color: #c9a84c;
 }
+
+/* Governance section */
+#governance {
+    background: #0e1526;
+    border-top: 1px solid #1e2a40;
+    padding: 1.5rem 3rem;
+}

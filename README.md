@@ -98,3 +98,15 @@ On-chain analytics tracking for protocol usage:
 npm run test:analytics
 npm run test:teachers
 ```
+
+## Governance
+
+On-chain parameter management for the protocol:
+
+- **Max Slots Per Teacher**: Configurable slot limits
+- **Governance Audit**: All parameter changes logged
+
+```bash
+npm run test:governance
+npm run test:gov-edge
+```
