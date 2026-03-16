@@ -147,3 +147,16 @@ Comprehensive market data tracking:
 npm run test:market
 npm run test:market-coexist
 ```
+
+## Emergency Controls
+
+Enhanced emergency pause with logging:
+
+- **Emergency Pause**: Immediately halt all operations
+- **Pause Logging**: Records block and count of pauses
+- **Quick Resume**: Resume after incident resolution
+
+```bash
+npm run test:emergency
+npm run test:pause-cycle
+```
