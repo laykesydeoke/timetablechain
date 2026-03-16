@@ -303,3 +303,28 @@
     (var-set max-slots-per-teacher max)
     (var-set governance-action-count (+ (var-get governance-action-count) u1))
     (ok true)))
+
+;; Reporting: protocol snapshots
+(define-map protocol-snapshots uint { slots: uint, transfers: uint, block-height: uint })
+(define-data-var snapshot-count uint u0)
+
+(define-read-only (get-protocol-report)
+  {
+    total-slots: (var-get total-slots-created),
+    total-transfers: (var-get total-transfers),
+    snapshot-count: (var-get snapshot-count),
+    report-block: stacks-block-height
+  })
+
+(define-public (take-protocol-snapshot)
+  (let ((count (var-get snapshot-count)))
+    (map-set protocol-snapshots count {
+      slots: (var-get total-slots-created),
+      transfers: (var-get total-transfers),
+      block-height: stacks-block-height
+    })
+    (var-set snapshot-count (+ count u1))
+    (ok count)))
+
+(define-read-only (get-protocol-snapshot (id uint))
+  (map-get? protocol-snapshots id))
