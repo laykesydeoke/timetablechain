@@ -328,3 +328,21 @@
 
 (define-read-only (get-protocol-snapshot (id uint))
   (map-get? protocol-snapshots id))
+
+;; Teacher tier rewards based on slot count
+(define-map teacher-slot-count principal uint)
+
+(define-read-only (get-teacher-tier (teacher principal))
+  (let ((count (default-to u0 (map-get? teacher-slot-count teacher))))
+    (if (>= count u10) u3
+      (if (>= count u5) u2 u1))))
+
+(define-read-only (get-teacher-tier-name (teacher principal))
+  (let ((tier (get-teacher-tier teacher)))
+    (if (is-eq tier u3) "gold"
+      (if (is-eq tier u2) "silver" "bronze"))))
+
+(define-read-only (get-teacher-bonus-bps (teacher principal))
+  (let ((tier (get-teacher-tier teacher)))
+    (if (is-eq tier u3) u100
+      (if (is-eq tier u2) u50 u0))))
