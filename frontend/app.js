@@ -250,3 +250,16 @@ function loadProtocolReport() {
         }
     }).catch(function () {});
 }
+
+function loadTeacherTier(address) {
+    if (!address) return;
+    callReadOnly('timetablechain', 'get-teacher-tier', ['0x0516' + address], []).then(function (data) {
+        var tierEl = document.getElementById('teacherTier');
+        var bonusEl = document.getElementById('teacherBonus');
+        if (tierEl && data && data.result) {
+            var tierMap = { 1: 'Bronze', 2: 'Silver', 3: 'Gold' };
+            var tierNum = parseInt(data.result, 16) || 1;
+            tierEl.textContent = tierMap[tierNum] || 'Bronze';
+        }
+    }).catch(function () {});
+}
