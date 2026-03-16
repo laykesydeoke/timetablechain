@@ -8,7 +8,10 @@
     "test:watch": "vitest",
     "test:analytics": "vitest run tests/slot_analytics_test.ts tests/total_slots_test.ts tests/analytics_integration_test.ts",
     "test:teachers": "vitest run tests/authorize_teacher_test.ts tests/revoke_teacher_test.ts tests/is_authorized_test.ts",
-    "test:analytics-edge": "vitest run tests/analytics_edge_test.ts tests/analytics_invariant_test.ts tests/analytics_summary_test.ts"
+    "test:analytics-edge": "vitest run tests/analytics_edge_test.ts tests/analytics_invariant_test.ts tests/analytics_summary_test.ts",
+    "test:governance": "vitest run tests/gov_params_test.ts tests/max_slots_test.ts tests/gov_access_test.ts",
+    "test:gov-edge": "vitest run tests/gov_edge_test.ts tests/gov_invariant_test.ts tests/gov_audit_test.ts",
+    "test:gov-flow": "vitest run tests/gov_flow_test.ts tests/gov_summary_test.ts tests/gov_integration_test.ts"
   },
   "devDependencies": {
     "@hirosystems/clarinet-sdk": "^2.9.0",
