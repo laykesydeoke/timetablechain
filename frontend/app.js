@@ -228,3 +228,14 @@ function loadSlotAnalytics() {
         }
     }).catch(function () {});
 }
+
+function loadGovernanceParams() {
+    callReadOnly('timetablechain', 'get-governance-params', []).then(function (data) {
+        var maxSlots = document.getElementById('govMaxSlots');
+        var govActions = document.getElementById('govActionCount');
+        if (data && data.result) {
+            if (maxSlots) maxSlots.textContent = data.result['max-slots-per-teacher'] || '--';
+            if (govActions) govActions.textContent = data.result['governance-actions'] || '0';
+        }
+    }).catch(function () {});
+}
