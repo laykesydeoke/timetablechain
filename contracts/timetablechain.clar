@@ -621,3 +621,21 @@
     (asserts\! (> limit u0) (err u2003))
     (var-set batch-size-limit limit)
     (ok true)))
+
+;; On-chain notification flags
+(define-map notification-flags principal { transfer-notify: bool, price-change-notify: bool, expiry-notify: bool })
+(define-data-var notifications-enabled bool true)
+(define-data-var notification-count uint u0)
+
+(define-read-only (get-notification-params)
+  { enabled: (var-get notifications-enabled), count: (var-get notification-count) })
+
+(define-read-only (get-notification-prefs (user principal))
+  (default-to { transfer-notify: true, price-change-notify: true, expiry-notify: true } (map-get? notification-flags user)))
+
+(define-public (set-notification-prefs (transfer bool) (price-change bool) (expiry bool))
+  (begin
+    (asserts\! (var-get notifications-enabled) (err u2101))
+    (map-set notification-flags tx-sender { transfer-notify: transfer, price-change-notify: price-change, expiry-notify: expiry })
+    (var-set notification-count (+ (var-get notification-count) u1))
+    (ok true)))
