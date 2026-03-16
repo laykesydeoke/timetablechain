@@ -310,3 +310,11 @@ async function loadAccessSummary() {
     document.getElementById('access-summary').textContent = JSON.stringify(result);
   }
 }
+
+// Slot validation
+async function loadValidationParams() {
+  const result = await callReadOnly('get-validation-params', []);
+  if (result) {
+    document.getElementById('validation-params').textContent = JSON.stringify(result);
+  }
+}

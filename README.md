@@ -184,3 +184,15 @@ Role-based access for protocol administrators:
 npm run test:access
 npm run test:access-roles
 ```
+
+## Slot Validation
+
+Configurable validation rules for teaching slots:
+
+- **Duration Range**: Min/max block duration enforcement
+- **Toggle Validation**: Enable/disable validation system
+
+```bash
+npm run test:validation
+npm run test:validation-rules
+```

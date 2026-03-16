@@ -22,3 +22,5 @@ performance-logs/
 uptime-snapshots/
 access-logs/
 role-snapshots/
+validation-logs/
+slot-rules-cache/
