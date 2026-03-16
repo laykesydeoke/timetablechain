@@ -639,3 +639,19 @@
     (map-set notification-flags tx-sender { transfer-notify: transfer, price-change-notify: price-change, expiry-notify: expiry })
     (var-set notification-count (+ (var-get notification-count) u1))
     (ok true)))
+
+;; On-chain slot events
+(define-map slot-events uint { event-type: (string-ascii 32), actor: principal, slot-id: uint, occurred-at: uint })
+(define-data-var events-enabled bool true)
+(define-data-var event-count uint u0)
+(define-read-only (get-event-params)
+  { enabled: (var-get events-enabled), count: (var-get event-count) })
+(define-read-only (get-slot-event (id uint))
+  (map-get? slot-events id))
+(define-public (emit-slot-event (event-type (string-ascii 32)) (slot-id uint))
+  (begin
+    (asserts! (var-get events-enabled) (err u2201))
+    (let ((id (+ (var-get event-count) u1)))
+      (map-set slot-events id { event-type: event-type, actor: tx-sender, slot-id: slot-id, occurred-at: block-height })
+      (var-set event-count id)
+      (ok id))))
