@@ -397,3 +397,6 @@ footer {
     border-top: 1px solid #182028;
     padding: 1.5rem 3rem;
 }
+
+/* Access control */
+#access-control { background: #fafafa; padding: 1rem; margin: 1rem 0; border-radius: 4px; }

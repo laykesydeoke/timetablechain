@@ -26,7 +26,10 @@
     "test:pause-cycle": "vitest run tests/multi_pause_test.ts tests/pause_full_test.ts tests/is_paused_after_pause_test.ts",
     "test:perf": "vitest run tests/perf_stats_test.ts tests/uptime_test.ts tests/perf_public_test.ts",
     "test:perf-coexist": "vitest run tests/perf_analytics_coexist_test.ts tests/perf_market_test.ts tests/perf_tier_test.ts",
-    "test:perf-edge": "vitest run tests/perf_edge_test.ts tests/perf_invariant_test.ts tests/perf_full_test.ts"
+    "test:perf-edge": "vitest run tests/perf_edge_test.ts tests/perf_invariant_test.ts tests/perf_full_test.ts",
+    "test:access": "vitest run tests/access_default_test.ts tests/access_grant_test.ts tests/access_revoke_test.ts",
+    "test:access-roles": "vitest run tests/admin_role_test.ts tests/role_count_test.ts tests/access_multi_admin_test.ts",
+    "test:access-edge": "vitest run tests/access_edge_test.ts tests/access_invariant_test.ts tests/access_full_test.ts"
   },
   "devDependencies": {
     "@hirosystems/clarinet-sdk": "^2.9.0",

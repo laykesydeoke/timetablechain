@@ -406,3 +406,30 @@
 
 (define-read-only (get-protocol-uptime)
   (- stacks-block-height (var-get protocol-start-block)))
+
+;; Access control roles
+(define-map admin-roles principal bool)
+(define-data-var role-count uint u0)
+
+(define-read-only (is-admin (addr principal))
+  (default-to false (map-get? admin-roles addr)))
+
+(define-read-only (get-access-summary)
+  {
+    contract-owner: (var-get contract-owner),
+    role-count: (var-get role-count),
+    is-paused: (var-get contract-paused)
+  })
+
+(define-public (grant-admin-role (addr principal))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (map-set admin-roles addr true)
+    (var-set role-count (+ (var-get role-count) u1))
+    (ok true)))
+
+(define-public (revoke-admin-role (addr principal))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (map-set admin-roles addr false)
+    (ok true)))

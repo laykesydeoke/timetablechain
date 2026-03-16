@@ -172,3 +172,15 @@ Protocol performance monitoring:
 npm run test:perf
 npm run test:perf-coexist
 ```
+
+## Access Control
+
+Role-based access for protocol administrators:
+
+- **Admin Roles**: Grant and revoke admin access
+- **Access Summary**: View current role state
+
+```bash
+npm run test:access
+npm run test:access-roles
+```
