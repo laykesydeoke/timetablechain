@@ -18,3 +18,5 @@ market-exports/
 marketplace-logs/
 pause-logs/
 emergency-exports/
+performance-logs/
+uptime-snapshots/
