@@ -344,3 +344,5 @@ async function load_categ() { const r = await callReadOnly("timetablechain", "ge
 async function load_rating() { const r = await callReadOnly("timetablechain", "get-rating-params", []); if (r) document.getElementById("rating-out").textContent = JSON.stringify(r); }
 
 async function load_batch() { const r = await callReadOnly("timetablechain", "get-batch-params", []); if (r) document.getElementById("batch-out").textContent = JSON.stringify(r); }
+
+async function load_notif() { const r = await callReadOnly("timetablechain", "get-notification-params", []); if (r) document.getElementById("notif-out").textContent = JSON.stringify(r); }
