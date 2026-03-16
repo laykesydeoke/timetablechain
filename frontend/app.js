@@ -302,3 +302,11 @@ function loadPerformanceStats() {
         if (uptime && results[1] && results[1].result) uptime.textContent = parseInt(results[1].result, 16) + ' blocks';
     }).catch(function(){});
 }
+
+// Access control
+async function loadAccessSummary() {
+  const result = await callReadOnly('get-access-summary', []);
+  if (result) {
+    document.getElementById('access-summary').textContent = JSON.stringify(result);
+  }
+}
