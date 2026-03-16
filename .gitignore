@@ -24,3 +24,5 @@ access-logs/
 role-snapshots/
 validation-logs/
 slot-rules-cache/
+price-cache/
+pricing-logs/
