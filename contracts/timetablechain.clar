@@ -463,3 +463,30 @@
     (var-set default-min-duration min)
     (var-set default-max-duration max)
     (ok true)))
+
+;; Slot pricing system
+(define-map slot-prices uint { price: uint, currency: uint, set-at: uint })
+(define-data-var pricing-enabled bool true)
+(define-data-var default-price uint u1000)
+(define-data-var price-count uint u0)
+
+(define-read-only (get-pricing-params)
+  { enabled: (var-get pricing-enabled), default-price: (var-get default-price), price-count: (var-get price-count) })
+
+(define-read-only (get-slot-price (slot-id uint))
+  (default-to { price: (var-get default-price), currency: u1, set-at: u0 } (map-get? slot-prices slot-id)))
+
+(define-public (set-slot-price (slot-id uint) (price uint))
+  (begin
+    (asserts! (var-get pricing-enabled) (err u1401))
+    (asserts! (> price u0) (err u1402))
+    (map-set slot-prices slot-id { price: price, currency: u1, set-at: stacks-block-height })
+    (var-set price-count (+ (var-get price-count) u1))
+    (ok true)))
+
+(define-public (set-default-price (price uint))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (asserts! (> price u0) (err u1403))
+    (var-set default-price price)
+    (ok true)))
