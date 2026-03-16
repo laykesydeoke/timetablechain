@@ -277,3 +277,15 @@ function loadMarketplaceMetrics() {
         if (marketStatus) marketStatus.textContent = s['is-paused'] ? 'Paused' : 'Active';
     }).catch(function(){});
 }
+
+function loadPauseState() {
+    callReadOnly('timetablechain', 'get-pause-state', []).then(function (data) {
+        var status = document.getElementById('pauseStatus');
+        var pauseCount = document.getElementById('pauseCount');
+        if (data && data.result) {
+            var isPaused = data.result['is-paused'];
+            if (status) { status.textContent = isPaused ? 'PAUSED' : 'Active'; status.style.color = isPaused ? '#ef4444' : '#10b981'; }
+            if (pauseCount) pauseCount.textContent = data.result['pause-count'] || '0';
+        }
+    }).catch(function () {});
+}
