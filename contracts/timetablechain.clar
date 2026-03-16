@@ -268,3 +268,19 @@
         (ok (var-set contract-paused (not (var-get contract-paused))))
     )
 )
+
+;; Slot analytics: protocol usage tracking
+(define-data-var total-slots-created uint u0)
+(define-data-var total-transfers uint u0)
+(define-data-var total-deactivations uint u0)
+
+(define-read-only (get-slot-analytics)
+  {
+    total-slots: (var-get total-slots-created),
+    total-transfers: (var-get total-transfers),
+    total-deactivations: (var-get total-deactivations),
+    last-token-id: (var-get last-token-id)
+  })
+
+(define-read-only (get-teacher-count)
+  (var-get last-token-id))
