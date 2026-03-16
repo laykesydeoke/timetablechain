@@ -1095,3 +1095,7 @@
   (map-get? usage-alert-registry id))
 (define-read-only (get-usage-alert-count)
   (ok (var-get usage-alert-counter)))
+(define-read-only (is-usage-alert-active (id uint))
+  (match (map-get? usage-alert-registry id)
+    entry (get active entry)
+    false))
