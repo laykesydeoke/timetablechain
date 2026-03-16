@@ -222,3 +222,11 @@ template feature.
 ```bash
 npm run test:template
 ```
+
+## exhist
+
+exhist feature.
+
+```bash
+npm run test:exhist
+```
