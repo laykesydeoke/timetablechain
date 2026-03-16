@@ -20,3 +20,5 @@ pause-logs/
 emergency-exports/
 performance-logs/
 uptime-snapshots/
+access-logs/
+role-snapshots/
