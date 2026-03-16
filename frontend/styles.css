@@ -390,3 +390,10 @@ footer {
     background: #100a0a;
     padding: 1.5rem 3rem;
 }
+
+/* Performance section */
+#performance {
+    background: #0b1015;
+    border-top: 1px solid #182028;
+    padding: 1.5rem 3rem;
+}
