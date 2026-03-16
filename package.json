@@ -17,7 +17,10 @@
     "test:audit": "vitest run tests/snapshot_audit_test.ts tests/reporting_summary_test.ts tests/report_consistency_test.ts",
     "test:tiers": "vitest run tests/tier_default_test.ts tests/tier_name_test.ts tests/tier_bonus_test.ts",
     "test:tier-levels": "vitest run tests/tier_level_test.ts tests/tier_multi_user_test.ts tests/tier_summary_test.ts",
-    "test:tier-edge": "vitest run tests/tier_edge_test.ts tests/tier_bonus_edge_test.ts tests/tier_invariant_test.ts"
+    "test:tier-edge": "vitest run tests/tier_edge_test.ts tests/tier_bonus_edge_test.ts tests/tier_invariant_test.ts",
+    "test:market": "vitest run tests/marketplace_metrics_test.ts tests/market_summary_test.ts tests/market_public_test.ts",
+    "test:market-coexist": "vitest run tests/market_analytics_coexist_test.ts tests/market_tier_coexist_test.ts tests/market_report_coexist_test.ts",
+    "test:market-edge": "vitest run tests/market_edge_test.ts tests/market_invariant_test.ts tests/market_full_test.ts"
   },
   "devDependencies": {
     "@hirosystems/clarinet-sdk": "^2.9.0",
