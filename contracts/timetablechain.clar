@@ -511,3 +511,27 @@
   (let ((existing (unwrap\! (map-get? teacher-profiles tx-sender) (err u1501))))
     (map-set teacher-profiles tx-sender (merge existing { display-name: display-name, bio-hash: bio-hash }))
     (ok true)))
+
+;; Schedule template system
+(define-map schedule-templates uint { creator: principal, name: (string-ascii 32), slot-count: uint, active: bool })
+(define-data-var template-count uint u0)
+
+(define-read-only (get-template (id uint))
+  (map-get? schedule-templates id))
+
+(define-read-only (get-template-stats)
+  { template-count: (var-get template-count) })
+
+(define-public (create-schedule-template (name (string-ascii 32)) (slot-count uint))
+  (begin
+    (asserts\! (> slot-count u0) (err u1601))
+    (let ((id (+ (var-get template-count) u1)))
+      (map-set schedule-templates id { creator: tx-sender, name: name, slot-count: slot-count, active: true })
+      (var-set template-count id)
+      (ok id))))
+
+(define-public (deactivate-template (id uint))
+  (let ((tmpl (unwrap\! (map-get? schedule-templates id) (err u1602))))
+    (asserts\! (is-eq tx-sender (get creator tmpl)) (err u1603))
+    (map-set schedule-templates id (merge tmpl { active: false }))
+    (ok true)))
