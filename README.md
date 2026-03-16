@@ -214,3 +214,11 @@ profile feature.
 ```bash
 npm run test:profile
 ```
+
+## template
+
+template feature.
+
+```bash
+npm run test:template
+```
