@@ -3,7 +3,7 @@ import { Cl } from "@stacks/transactions";
 import { simnet } from "./setup";
 describe('pause governance', () => {
   it('pause and governance coexist', () => {
+    const pause = simnet.callReadOnlyFn('timetablechain', 'get-pause-state', [], simnet.deployer);
     const gov = simnet.callReadOnlyFn('timetablechain', 'get-governance-params', [], simnet.deployer);
-    const paused = simnet.callReadOnlyFn('timetablechain', 'is-paused', [], simnet.deployer);
-    expect(gov.result).not.toBeNone();
-    expect(paused.result).not.toBeNone(); }); });
+    expect(pause.result).not.toBeNone();
+    expect(gov.result).not.toBeNone(); }); });
