@@ -599,3 +599,25 @@
       (map-set teacher-ratings teacher { total-score: (+ (get total-score current) score), rating-count: (+ (get rating-count current) u1), last-rated: stacks-block-height })
       (var-set total-ratings (+ (var-get total-ratings) u1))
       (ok true))))
+
+;; Batch slot operations
+(define-data-var batch-size-limit uint u10)
+(define-data-var batch-count uint u0)
+(define-data-var batch-enabled bool true)
+
+(define-read-only (get-batch-params)
+  { batch-limit: (var-get batch-size-limit), batch-count: (var-get batch-count), enabled: (var-get batch-enabled) })
+
+(define-public (start-batch-operation (size uint))
+  (begin
+    (asserts\! (var-get batch-enabled) (err u2001))
+    (asserts\! (<= size (var-get batch-size-limit)) (err u2002))
+    (var-set batch-count (+ (var-get batch-count) u1))
+    (ok (var-get batch-count))))
+
+(define-public (set-batch-limit (limit uint))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (asserts\! (> limit u0) (err u2003))
+    (var-set batch-size-limit limit)
+    (ok true)))
