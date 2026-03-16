@@ -16,3 +16,5 @@ tier-cache/
 reward-logs/
 market-exports/
 marketplace-logs/
+pause-logs/
+emergency-exports/
