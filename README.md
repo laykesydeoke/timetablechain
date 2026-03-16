@@ -246,3 +246,9 @@ rating feature.
 ```bash
 npm run test:rating
 ```
+
+## batch
+
+```bash
+npm run test:batch
+```
