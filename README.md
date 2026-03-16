@@ -238,3 +238,11 @@ categ feature.
 ```bash
 npm run test:categ
 ```
+
+## rating
+
+rating feature.
+
+```bash
+npm run test:rating
+```
