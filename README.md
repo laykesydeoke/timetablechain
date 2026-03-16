@@ -122,3 +122,16 @@ Protocol snapshots for historical analysis and compliance:
 npm run test:reporting
 npm run test:snapshots
 ```
+
+## Teacher Tier Rewards
+
+Teachers earn loyalty tiers based on slot creation:
+
+- **Bronze** (0-4 slots): Base rate
+- **Silver** (5-9 slots): +50 bps bonus
+- **Gold** (10+ slots): +100 bps bonus
+
+```bash
+npm run test:tiers
+npm run test:tier-levels
+```
