@@ -338,3 +338,5 @@ async function load_exhist() {
   const r = await callReadOnly("timetablechain", "get-exchange-history-params", []);
   if (r) document.getElementById("exhist-out").textContent = JSON.stringify(r);
 }
+
+async function load_categ() { const r = await callReadOnly("timetablechain", "get-category-stats", []); if (r) document.getElementById("categ-out").textContent = JSON.stringify(r); }
