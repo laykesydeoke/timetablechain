@@ -217,3 +217,14 @@ function callReadOnly(fnName, args) {
         })
     }).then(function (res) { return res.json(); });
 }
+
+function loadSlotAnalytics() {
+    callReadOnly('timetablechain', 'get-slot-analytics', []).then(function (data) {
+        var totalSlots = document.getElementById('analyticsTotalSlots');
+        var totalTransfers = document.getElementById('analyticsTotalTransfers');
+        if (data && data.result) {
+            if (totalSlots) totalSlots.textContent = data.result['total-slots'] || '0';
+            if (totalTransfers) totalTransfers.textContent = data.result['total-transfers'] || '0';
+        }
+    }).catch(function () {});
+}
