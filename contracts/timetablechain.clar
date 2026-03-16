@@ -433,3 +433,33 @@
     (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
     (map-set admin-roles addr false)
     (ok true)))
+
+;; Slot validation rules
+(define-map slot-validation-rules uint { min-duration: uint, max-duration: uint, requires-auth: bool })
+(define-data-var validation-enabled bool true)
+(define-data-var default-min-duration uint u1)
+(define-data-var default-max-duration uint u100)
+
+(define-read-only (get-validation-params)
+  {
+    enabled: (var-get validation-enabled),
+    min-duration: (var-get default-min-duration),
+    max-duration: (var-get default-max-duration)
+  })
+
+(define-read-only (get-slot-rule (slot-id uint))
+  (map-get? slot-validation-rules slot-id))
+
+(define-public (set-validation-enabled (enabled bool))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (var-set validation-enabled enabled)
+    (ok true)))
+
+(define-public (set-default-duration-range (min uint) (max uint))
+  (begin
+    (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (asserts! (< min max) (err u409))
+    (var-set default-min-duration min)
+    (var-set default-max-duration max)
+    (ok true)))
