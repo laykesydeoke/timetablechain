@@ -333,3 +333,8 @@ async function load_template() {
   const r = await callReadOnly("timetablechain", "get-template-stats", []);
   if (r) document.getElementById("template-out").textContent = JSON.stringify(r);
 }
+
+async function load_exhist() {
+  const r = await callReadOnly("timetablechain", "get-exchange-history-params", []);
+  if (r) document.getElementById("exhist-out").textContent = JSON.stringify(r);
+}
