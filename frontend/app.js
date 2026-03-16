@@ -263,3 +263,17 @@ function loadTeacherTier(address) {
         }
     }).catch(function () {});
 }
+
+function loadMarketplaceMetrics() {
+    Promise.all([
+        callReadOnly('timetablechain', 'get-marketplace-metrics', []),
+        callReadOnly('timetablechain', 'get-market-summary', [])
+    ]).then(function(results) {
+        var activeSlots = document.getElementById('marketActiveSlots');
+        var marketStatus = document.getElementById('marketStatus');
+        var m = results[0] && results[0].result ? results[0].result : {};
+        var s = results[1] && results[1].result ? results[1].result : {};
+        if (activeSlots) activeSlots.textContent = m['active-slots'] || '0';
+        if (marketStatus) marketStatus.textContent = s['is-paused'] ? 'Paused' : 'Active';
+    }).catch(function(){});
+}
