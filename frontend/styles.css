@@ -384,3 +384,9 @@ footer {
     border-top: 1px solid #1c2838;
     padding: 1.5rem 3rem;
 }
+
+/* Emergency section */
+#emergency {
+    background: #100a0a;
+    padding: 1.5rem 3rem;
+}
