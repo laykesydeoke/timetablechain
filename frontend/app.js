@@ -323,3 +323,8 @@ async function loadPricingParams() {
   const r = await callReadOnly("timetablechain", "get-pricing-params", []);
   if (r) document.getElementById("pricing-data").textContent = JSON.stringify(r);
 }
+
+async function load_profile() {
+  const r = await callReadOnly("timetablechain", "get-profile-stats", []);
+  if (r) document.getElementById("profile-out").textContent = JSON.stringify(r);
+}

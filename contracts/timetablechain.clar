@@ -490,3 +490,24 @@
     (asserts! (> price u0) (err u1403))
     (var-set default-price price)
     (ok true)))
+
+;; Extended teacher profiles
+(define-map teacher-profiles principal { display-name: (string-ascii 64), bio-hash: (buff 32), active: bool, created-at: uint })
+(define-data-var profile-count uint u0)
+
+(define-read-only (get-teacher-profile (teacher principal))
+  (map-get? teacher-profiles teacher))
+
+(define-read-only (get-profile-stats)
+  { profile-count: (var-get profile-count) })
+
+(define-public (create-teacher-profile (display-name (string-ascii 64)) (bio-hash (buff 32)))
+  (begin
+    (map-set teacher-profiles tx-sender { display-name: display-name, bio-hash: bio-hash, active: true, created-at: stacks-block-height })
+    (var-set profile-count (+ (var-get profile-count) u1))
+    (ok true)))
+
+(define-public (update-teacher-profile (display-name (string-ascii 64)) (bio-hash (buff 32)))
+  (let ((existing (unwrap\! (map-get? teacher-profiles tx-sender) (err u1501))))
+    (map-set teacher-profiles tx-sender (merge existing { display-name: display-name, bio-hash: bio-hash }))
+    (ok true)))
