@@ -289,3 +289,16 @@ function loadPauseState() {
         }
     }).catch(function () {});
 }
+
+function loadPerformanceStats() {
+    Promise.all([
+        callReadOnly('timetablechain', 'get-performance-stats', []),
+        callReadOnly('timetablechain', 'get-protocol-uptime', [])
+    ]).then(function(results) {
+        var txCount = document.getElementById('perfTxCount');
+        var uptime = document.getElementById('perfUptime');
+        var stats = results[0] && results[0].result ? results[0].result : {};
+        if (txCount) txCount.textContent = stats['total-tx'] || '0';
+        if (uptime && results[1] && results[1].result) uptime.textContent = parseInt(results[1].result, 16) + ' blocks';
+    }).catch(function(){});
+}

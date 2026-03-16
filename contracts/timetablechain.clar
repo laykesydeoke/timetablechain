@@ -391,3 +391,18 @@
     (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
     (var-set contract-paused false)
     (ok true)))
+
+;; Performance tracking
+(define-data-var total-tx-count uint u0)
+(define-data-var protocol-start-block uint stacks-block-height)
+
+(define-read-only (get-performance-stats)
+  {
+    total-slots: (var-get total-slots-created),
+    total-transfers: (var-get total-transfers),
+    total-tx: (var-get total-tx-count),
+    uptime-blocks: (- stacks-block-height (var-get protocol-start-block))
+  })
+
+(define-read-only (get-protocol-uptime)
+  (- stacks-block-height (var-get protocol-start-block)))

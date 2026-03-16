@@ -160,3 +160,15 @@ Enhanced emergency pause with logging:
 npm run test:emergency
 npm run test:pause-cycle
 ```
+
+## Performance Tracking
+
+Protocol performance monitoring:
+
+- **Transaction Count**: Total protocol transactions
+- **Protocol Uptime**: Blocks since deployment
+
+```bash
+npm run test:perf
+npm run test:perf-coexist
+```
