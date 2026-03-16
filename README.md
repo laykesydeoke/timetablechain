@@ -135,3 +135,15 @@ Teachers earn loyalty tiers based on slot creation:
 npm run test:tiers
 npm run test:tier-levels
 ```
+
+## Marketplace Analytics
+
+Comprehensive market data tracking:
+
+- **Active Slots**: Currently tradeable teaching slots
+- **Market Summary**: Pause state, governance actions, snapshots
+
+```bash
+npm run test:market
+npm run test:market-coexist
+```
