@@ -535,3 +535,22 @@
     (asserts\! (is-eq tx-sender (get creator tmpl)) (err u1603))
     (map-set schedule-templates id (merge tmpl { active: false }))
     (ok true)))
+
+;; Exchange history tracking
+(define-map exchange-history uint { from: principal, to: principal, slot-id: uint, exchanged-at: uint, exchange-type: uint })
+(define-data-var exchange-count uint u0)
+(define-data-var history-enabled bool true)
+
+(define-read-only (get-exchange-history-params)
+  { exchange-count: (var-get exchange-count), enabled: (var-get history-enabled) })
+
+(define-read-only (get-exchange-record (id uint))
+  (map-get? exchange-history id))
+
+(define-public (record-exchange (from principal) (to principal) (slot-id uint) (exchange-type uint))
+  (begin
+    (asserts\! (var-get history-enabled) (err u1701))
+    (let ((id (+ (var-get exchange-count) u1)))
+      (map-set exchange-history id { from: from, to: to, slot-id: slot-id, exchanged-at: stacks-block-height, exchange-type: exchange-type })
+      (var-set exchange-count id)
+      (ok id))))
