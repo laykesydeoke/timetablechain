@@ -12,3 +12,5 @@ param-snapshots/
 reports/
 snapshots/
 compliance-exports/
+tier-cache/
+reward-logs/
