@@ -340,3 +340,5 @@ async function load_exhist() {
 }
 
 async function load_categ() { const r = await callReadOnly("timetablechain", "get-category-stats", []); if (r) document.getElementById("categ-out").textContent = JSON.stringify(r); }
+
+async function load_rating() { const r = await callReadOnly("timetablechain", "get-rating-params", []); if (r) document.getElementById("rating-out").textContent = JSON.stringify(r); }

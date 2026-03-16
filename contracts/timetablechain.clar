@@ -579,3 +579,23 @@
     (asserts\! (<= category-id (var-get category-count)) (err u1801))
     (map-set slot-category-assignments slot-id category-id)
     (ok true)))
+
+;; Teacher and slot rating system
+(define-map teacher-ratings principal { total-score: uint, rating-count: uint, last-rated: uint })
+(define-data-var rating-enabled bool true)
+(define-data-var total-ratings uint u0)
+
+(define-read-only (get-rating-params)
+  { enabled: (var-get rating-enabled), total-ratings: (var-get total-ratings) })
+
+(define-read-only (get-teacher-rating (teacher principal))
+  (default-to { total-score: u0, rating-count: u0, last-rated: u0 } (map-get? teacher-ratings teacher)))
+
+(define-public (rate-teacher (teacher principal) (score uint))
+  (begin
+    (asserts\! (var-get rating-enabled) (err u1901))
+    (asserts\! (<= score u5) (err u1902))
+    (let ((current (get-teacher-rating teacher)))
+      (map-set teacher-ratings teacher { total-score: (+ (get total-score current) score), rating-count: (+ (get rating-count current) u1), last-rated: stacks-block-height })
+      (var-set total-ratings (+ (var-get total-ratings) u1))
+      (ok true))))
