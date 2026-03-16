@@ -206,3 +206,11 @@ Configurable pricing for teaching slots:
 ```bash
 npm run test:pricing
 ```
+
+## profile
+
+profile feature.
+
+```bash
+npm run test:profile
+```
