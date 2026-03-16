@@ -85,3 +85,16 @@ Lead Developer - Olalekan Akande
 ## Acknowledgments
 
 - Stacks Foundation
+
+## Slot Analytics
+
+On-chain analytics tracking for protocol usage:
+
+- Total slots created
+- Transfer count
+- Deactivation count
+
+```bash
+npm run test:analytics
+npm run test:teachers
+```
