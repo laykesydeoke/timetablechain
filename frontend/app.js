@@ -328,3 +328,8 @@ async function load_profile() {
   const r = await callReadOnly("timetablechain", "get-profile-stats", []);
   if (r) document.getElementById("profile-out").textContent = JSON.stringify(r);
 }
+
+async function load_template() {
+  const r = await callReadOnly("timetablechain", "get-template-stats", []);
+  if (r) document.getElementById("template-out").textContent = JSON.stringify(r);
+}
