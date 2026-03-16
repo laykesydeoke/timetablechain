@@ -110,3 +110,15 @@ On-chain parameter management for the protocol:
 npm run test:governance
 npm run test:gov-edge
 ```
+
+## Reporting
+
+Protocol snapshots for historical analysis and compliance:
+
+- **Protocol Snapshots**: Point-in-time state capture
+- **Historical Reports**: Access any snapshot by ID
+
+```bash
+npm run test:reporting
+npm run test:snapshots
+```
