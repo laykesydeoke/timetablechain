@@ -346,3 +346,23 @@
   (let ((tier (get-teacher-tier teacher)))
     (if (is-eq tier u3) u100
       (if (is-eq tier u2) u50 u0))))
+
+;; Marketplace analytics: active slots and market data
+(define-data-var active-slot-count uint u0)
+(define-data-var total-unique-teachers uint u0)
+
+(define-read-only (get-marketplace-metrics)
+  {
+    active-slots: (var-get active-slot-count),
+    total-unique-teachers: (var-get total-unique-teachers),
+    total-slots: (var-get total-slots-created),
+    last-token: (var-get last-token-id)
+  })
+
+(define-read-only (get-market-summary)
+  {
+    is-paused: (var-get contract-paused),
+    total-slots: (var-get total-slots-created),
+    governance-actions: (var-get governance-action-count),
+    snapshot-count: (var-get snapshot-count)
+  })
