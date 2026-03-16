@@ -318,3 +318,8 @@ async function loadValidationParams() {
     document.getElementById('validation-params').textContent = JSON.stringify(result);
   }
 }
+
+async function loadPricingParams() {
+  const r = await callReadOnly("timetablechain", "get-pricing-params", []);
+  if (r) document.getElementById("pricing-data").textContent = JSON.stringify(r);
+}
