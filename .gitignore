@@ -9,3 +9,6 @@ analytics-exports/
 slot-snapshots/
 governance-logs/
 param-snapshots/
+reports/
+snapshots/
+compliance-exports/
