@@ -690,3 +690,12 @@
   (and (> (len name) u0) (<= slots MAX-TEMPLATE-SLOTS)))
 (define-read-only (get-template-bounds)
   { max-slots: MAX-TEMPLATE-SLOTS, max-name: MAX-TEMPLATE-NAME-LEN })
+
+;; Exchange validation
+(define-data-var exchange-validation-on bool true)
+(define-data-var max-exchanges-per-block uint u10)
+(define-map exchange-block-counts uint uint)
+(define-read-only (get-exchange-validation-params)
+  { enabled: (var-get exchange-validation-on), max-per-block: (var-get max-exchanges-per-block) })
+(define-read-only (get-block-exchange-count (block uint))
+  (default-to u0 (map-get? exchange-block-counts block)))
