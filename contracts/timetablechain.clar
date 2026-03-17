@@ -1660,3 +1660,7 @@
   (match (map-get? perm-gate-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-perm-gate-owner (id uint))
+  (match (map-get? perm-gate-registry id)
+    entry (ok (get owner entry))
+    (err u991)))
