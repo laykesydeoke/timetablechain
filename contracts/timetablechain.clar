@@ -742,3 +742,18 @@
   (and (>= price MIN-SLOT-PRICE) (<= price MAX-SLOT-PRICE)))
 (define-read-only (get-pricing-range)
   { min: MIN-SLOT-PRICE, max: MAX-SLOT-PRICE, default: (var-get default-price) })
+
+;; Schedule collision detection
+(define-data-var collision-check-enabled bool true)
+(define-map slot-schedules uint { day: uint, period: uint })
+(define-read-only (get-slot-schedule (slot-id uint))
+  (map-get? slot-schedules slot-id))
+(define-read-only (get-collision-params)
+  { enabled: (var-get collision-check-enabled) })
+(define-public (assign-schedule (slot-id uint) (day uint) (period uint))
+  (begin
+    (asserts\! (var-get collision-check-enabled) (err u2400))
+    (asserts\! (<= day u7) (err u2401))
+    (asserts\! (<= period u8) (err u2402))
+    (map-set slot-schedules slot-id { day: day, period: period })
+    (ok true)))
