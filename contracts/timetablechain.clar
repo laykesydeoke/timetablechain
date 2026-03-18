@@ -734,3 +734,11 @@
 (define-data-var notif-change-count uint u0)
 (define-read-only (get-notif-config)
   { enabled: (var-get notifications-enabled), override: (var-get notif-global-override), rate-limit: (var-get notif-rate-limit) })
+
+;; Pricing range enforcement
+(define-constant MIN-SLOT-PRICE u10)
+(define-constant MAX-SLOT-PRICE u100000000)
+(define-read-only (validate-price-range (price uint))
+  (and (>= price MIN-SLOT-PRICE) (<= price MAX-SLOT-PRICE)))
+(define-read-only (get-pricing-range)
+  { min: MIN-SLOT-PRICE, max: MAX-SLOT-PRICE, default: (var-get default-price) })
