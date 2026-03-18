@@ -717,3 +717,12 @@
   { min: MIN-RATING-SCORE, max: MAX-RATING-SCORE, cooldown: (var-get rating-cooldown) })
 (define-read-only (can-rate (user principal))
   (> (- stacks-block-height (default-to u0 (map-get? rating-timestamps user))) (var-get rating-cooldown)))
+
+;; Batch operation validation
+(define-constant BATCH-MIN-SIZE u1)
+(define-data-var batch-cooldown uint u5)
+(define-map batch-timestamps principal uint)
+(define-read-only (get-batch-validation-params)
+  { min-size: BATCH-MIN-SIZE, max-size: (var-get batch-size-limit), cooldown: (var-get batch-cooldown) })
+(define-read-only (can-start-batch (user principal))
+  (> (- stacks-block-height (default-to u0 (map-get? batch-timestamps user))) (var-get batch-cooldown)))
