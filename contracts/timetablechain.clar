@@ -2316,3 +2316,7 @@
   (map-get? compact-svc-registry id))
 (define-read-only (get-compact-svc-count)
   (ok (var-get compact-svc-counter)))
+(define-read-only (is-compact-svc-active (id uint))
+  (match (map-get? compact-svc-registry id)
+    entry (get active entry)
+    false))
