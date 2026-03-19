@@ -2122,3 +2122,7 @@
   (match (map-get? restore-proc-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-restore-proc-owner (id uint))
+  (match (map-get? restore-proc-registry id)
+    entry (ok (get owner entry))
+    (err u1131)))
