@@ -805,3 +805,17 @@
     (map-set slot-search-index slot-id { subject-hash: subject-hash, grade: grade, room: room, indexed-at: stacks-block-height })
     (var-set indexed-slots (+ (var-get indexed-slots) u1))
     (ok true)))
+
+;; Slot lifecycle management
+(define-constant LIFECYCLE-DRAFT u1)
+(define-constant LIFECYCLE-ACTIVE u2)
+(define-constant LIFECYCLE-EXPIRED u3)
+(define-constant LIFECYCLE-ARCHIVED u4)
+(define-map slot-lifecycle-state uint uint)
+(define-read-only (get-slot-lifecycle (slot-id uint))
+  (default-to LIFECYCLE-DRAFT (map-get? slot-lifecycle-state slot-id)))
+(define-public (advance-lifecycle (slot-id uint) (new-state uint))
+  (begin
+    (asserts\! (<= new-state LIFECYCLE-ARCHIVED) (err u2600))
+    (map-set slot-lifecycle-state slot-id new-state)
+    (ok true)))
