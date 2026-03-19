@@ -757,3 +757,13 @@
     (asserts\! (<= period u8) (err u2402))
     (map-set slot-schedules slot-id { day: day, period: period })
     (ok true)))
+
+;; Permission matrix enforcement
+(define-map permission-matrix principal { can-create: bool, can-transfer: bool, can-deactivate: bool, can-rate: bool })
+(define-read-only (get-permissions (user principal))
+  (default-to { can-create: false, can-transfer: true, can-deactivate: true, can-rate: true } (map-get? permission-matrix user)))
+(define-public (set-permissions (user principal) (create bool) (transfer bool) (deactivate bool) (rate bool))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (map-set permission-matrix user { can-create: create, can-transfer: transfer, can-deactivate: deactivate, can-rate: rate })
+    (ok true)))
