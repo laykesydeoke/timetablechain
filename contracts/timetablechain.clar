@@ -767,3 +767,15 @@
     (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
     (map-set permission-matrix user { can-create: create, can-transfer: transfer, can-deactivate: deactivate, can-rate: rate })
     (ok true)))
+
+;; Event deduplication
+(define-data-var dedup-window uint u10)
+(define-map event-fingerprints (buff 32) uint)
+(define-read-only (get-dedup-params)
+  { window: (var-get dedup-window) })
+(define-read-only (event-exists (fingerprint (buff 32)))
+  (is-some (map-get? event-fingerprints fingerprint)))
+(define-public (register-event-fingerprint (fingerprint (buff 32)))
+  (begin
+    (map-set event-fingerprints fingerprint stacks-block-height)
+    (ok true)))
