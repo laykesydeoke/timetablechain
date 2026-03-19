@@ -793,3 +793,15 @@
     (map-set migrated-profiles teacher { migrated-at: stacks-block-height, from-version: u1 })
     (var-set profiles-migrated (+ (var-get profiles-migrated) u1))
     (ok true)))
+
+;; Search index optimization
+(define-data-var search-index-version uint u1)
+(define-data-var indexed-slots uint u0)
+(define-map slot-search-index uint { subject-hash: (buff 32), grade: uint, room: uint, indexed-at: uint })
+(define-read-only (get-search-stats)
+  { version: (var-get search-index-version), indexed: (var-get indexed-slots) })
+(define-public (index-slot (slot-id uint) (subject-hash (buff 32)) (grade uint) (room uint))
+  (begin
+    (map-set slot-search-index slot-id { subject-hash: subject-hash, grade: grade, room: room, indexed-at: stacks-block-height })
+    (var-set indexed-slots (+ (var-get indexed-slots) u1))
+    (ok true)))
