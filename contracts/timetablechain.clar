@@ -843,3 +843,18 @@
     (asserts\! (> interval u0) (err u2701))
     (map-set slot-recurrence slot-id { recur-type: recur-type, interval: interval, end-block: end-block })
     (ok true)))
+
+;; Waitlist management
+(define-data-var waitlist-enabled bool true)
+(define-data-var waitlist-count uint u0)
+(define-map slot-waitlist uint { count: uint, max-size: uint })
+(define-map waitlist-entries uint { user: principal, slot-id: uint, position: uint, added-at: uint })
+(define-read-only (get-waitlist-params)
+  { enabled: (var-get waitlist-enabled), total: (var-get waitlist-count) })
+(define-public (join-waitlist (slot-id uint))
+  (begin
+    (asserts\! (var-get waitlist-enabled) (err u2800))
+    (let ((id (+ (var-get waitlist-count) u1)))
+      (map-set waitlist-entries id { user: tx-sender, slot-id: slot-id, position: id, added-at: stacks-block-height })
+      (var-set waitlist-count id)
+      (ok id))))
