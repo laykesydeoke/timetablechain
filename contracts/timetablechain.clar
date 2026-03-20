@@ -829,3 +829,17 @@
   (/ block BLOCKS-PER-WEEK))
 (define-read-only (get-current-period)
   { day: (/ stacks-block-height BLOCKS-PER-DAY), week: (/ stacks-block-height BLOCKS-PER-WEEK), block: stacks-block-height })
+
+;; Recurrence rule engine
+(define-constant RECUR-NONE u0)
+(define-constant RECUR-DAILY u1)
+(define-constant RECUR-WEEKLY u2)
+(define-map slot-recurrence uint { recur-type: uint, interval: uint, end-block: uint })
+(define-read-only (get-recurrence (slot-id uint))
+  (map-get? slot-recurrence slot-id))
+(define-public (set-recurrence (slot-id uint) (recur-type uint) (interval uint) (end-block uint))
+  (begin
+    (asserts\! (<= recur-type RECUR-WEEKLY) (err u2700))
+    (asserts\! (> interval u0) (err u2701))
+    (map-set slot-recurrence slot-id { recur-type: recur-type, interval: interval, end-block: end-block })
+    (ok true)))
