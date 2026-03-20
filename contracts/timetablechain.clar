@@ -2621,3 +2621,5 @@
   (match (map-get? filter-eng-registry id)
     entry (ok (get owner entry))
     (err u1281)))
+(define-read-only (get-filter-eng-value (id uint))
+  (default-to u0 (get value (map-get? filter-eng-registry id))))
