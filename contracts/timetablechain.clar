@@ -819,3 +819,13 @@
     (asserts\! (<= new-state LIFECYCLE-ARCHIVED) (err u2600))
     (map-set slot-lifecycle-state slot-id new-state)
     (ok true)))
+
+;; Calendar alignment utilities
+(define-constant BLOCKS-PER-DAY u144)
+(define-constant BLOCKS-PER-WEEK u1008)
+(define-read-only (block-to-day (block uint))
+  (/ block BLOCKS-PER-DAY))
+(define-read-only (block-to-week (block uint))
+  (/ block BLOCKS-PER-WEEK))
+(define-read-only (get-current-period)
+  { day: (/ stacks-block-height BLOCKS-PER-DAY), week: (/ stacks-block-height BLOCKS-PER-WEEK), block: stacks-block-height })
