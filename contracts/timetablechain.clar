@@ -874,3 +874,18 @@
       (map-set audit-entries id { action: action, actor: tx-sender, target-id: target-id, block: stacks-block-height })
       (var-set audit-log-count id)
       (ok id))))
+
+;; Import data validation
+(define-data-var import-enabled bool true)
+(define-data-var import-count uint u0)
+(define-map import-records uint { source: (string-ascii 32), items: uint, imported-at: uint, valid: bool })
+(define-read-only (get-import-params)
+  { enabled: (var-get import-enabled), count: (var-get import-count) })
+(define-public (record-import (source (string-ascii 32)) (items uint))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (asserts\! (var-get import-enabled) (err u3000))
+    (let ((id (+ (var-get import-count) u1)))
+      (map-set import-records id { source: source, items: items, imported-at: stacks-block-height, valid: true })
+      (var-set import-count id)
+      (ok id))))
