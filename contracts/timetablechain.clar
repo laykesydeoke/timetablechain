@@ -905,3 +905,22 @@
     (asserts! (is-eq tx-sender contract-caller) (err u3101))
     (var-set tz-default offset)
     (ok true)))
+
+;; API versioning system
+(define-map api-versions uint { major: uint, minor: uint, deprecated: bool })
+(define-data-var current-api-version uint u1)
+(define-public (register-api-version (ver uint) (major uint) (minor uint))
+  (begin
+    (asserts! (> ver u0) (err u3200))
+    (map-set api-versions ver { major: major, minor: minor, deprecated: false })
+    (var-set current-api-version ver)
+    (ok true)))
+(define-public (deprecate-api-version (ver uint))
+  (begin
+    (match (map-get? api-versions ver)
+      entry (begin
+        (map-set api-versions ver (merge entry { deprecated: true }))
+        (ok true))
+      (err u3201))))
+(define-read-only (get-api-version (ver uint))
+  (map-get? api-versions ver))
