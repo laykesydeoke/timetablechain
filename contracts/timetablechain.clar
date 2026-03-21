@@ -699,3 +699,11 @@
   { enabled: (var-get exchange-validation-on), max-per-block: (var-get max-exchanges-per-block) })
 (define-read-only (get-block-exchange-count (block uint))
   (default-to u0 (map-get? exchange-block-counts block)))
+
+;; Category system limits
+(define-constant MAX-CATEGORIES u100)
+(define-constant MAX-SLOTS-PER-CATEGORY u500)
+(define-read-only (get-category-limits)
+  { max-categories: MAX-CATEGORIES, max-per-cat: MAX-SLOTS-PER-CATEGORY, current: (var-get category-count) })
+(define-read-only (can-add-category)
+  (< (var-get category-count) MAX-CATEGORIES))
