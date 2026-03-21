@@ -682,3 +682,11 @@
     (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
     (map-set teacher-credentials teacher { verified: true, verified-at: stacks-block-height, credential-type: cred-type })
     (ok true)))
+
+;; Template parameter bounds
+(define-constant MAX-TEMPLATE-SLOTS u50)
+(define-constant MAX-TEMPLATE-NAME-LEN u32)
+(define-read-only (validate-template-params (name (string-ascii 32)) (slots uint))
+  (and (> (len name) u0) (<= slots MAX-TEMPLATE-SLOTS)))
+(define-read-only (get-template-bounds)
+  { max-slots: MAX-TEMPLATE-SLOTS, max-name: MAX-TEMPLATE-NAME-LEN })
