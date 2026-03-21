@@ -655,3 +655,17 @@
       (map-set slot-events id { event-type: event-type, actor: tx-sender, slot-id: slot-id, occurred-at: block-height })
       (var-set event-count id)
       (ok id))))
+
+;; Slot overlap detection
+(define-map slot-time-ranges uint { start: uint, end: uint })
+(define-data-var overlap-detection-on bool true)
+(define-read-only (get-slot-range (slot-id uint))
+  (map-get? slot-time-ranges slot-id))
+(define-read-only (check-overlap (start1 uint) (end1 uint) (start2 uint) (end2 uint))
+  (and (< start1 end2) (< start2 end1)))
+(define-public (register-slot-range (slot-id uint) (start uint) (end uint))
+  (begin
+    (asserts\! (var-get overlap-detection-on) (err u2300))
+    (asserts\! (< start end) (err u2301))
+    (map-set slot-time-ranges slot-id { start: start, end: end })
+    (ok true)))
