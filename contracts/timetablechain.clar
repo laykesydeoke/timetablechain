@@ -924,3 +924,22 @@
       (err u3201))))
 (define-read-only (get-api-version (ver uint))
   (map-get? api-versions ver))
+
+;; Cache refresh tracking
+(define-map cache-entries uint { key: (string-ascii 64), updated-at: uint, ttl: uint })
+(define-data-var cache-counter uint u0)
+(define-data-var cache-enabled bool true)
+(define-public (add-cache-entry (key (string-ascii 64)) (ttl uint))
+  (begin
+    (asserts! (var-get cache-enabled) (err u3300))
+    (asserts! (> ttl u0) (err u3301))
+    (let ((id (+ (var-get cache-counter) u1)))
+      (map-set cache-entries id { key: key, updated-at: stacks-block-height, ttl: ttl })
+      (var-set cache-counter id)
+      (ok id))))
+(define-read-only (is-cache-stale (id uint))
+  (match (map-get? cache-entries id)
+    entry (> (- stacks-block-height (get updated-at entry)) (get ttl entry))
+    true))
+(define-public (toggle-cache (on bool))
+  (begin (var-set cache-enabled on) (ok true)))
