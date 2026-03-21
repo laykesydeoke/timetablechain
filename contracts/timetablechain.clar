@@ -889,3 +889,19 @@
       (map-set import-records id { source: source, items: items, imported-at: stacks-block-height, valid: true })
       (var-set import-count id)
       (ok id))))
+
+;; Timezone offset management
+(define-map tz-offsets principal int)
+(define-data-var tz-default int 0)
+(define-public (set-tz-offset (offset int))
+  (begin
+    (asserts! (and (>= offset -43200) (<= offset 50400)) (err u3100))
+    (map-set tz-offsets tx-sender offset)
+    (ok true)))
+(define-read-only (get-tz-offset (who principal))
+  (default-to (var-get tz-default) (map-get? tz-offsets who)))
+(define-public (set-default-tz (offset int))
+  (begin
+    (asserts! (is-eq tx-sender contract-caller) (err u3101))
+    (var-set tz-default offset)
+    (ok true)))
