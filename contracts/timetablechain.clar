@@ -779,3 +779,17 @@
   (begin
     (map-set event-fingerprints fingerprint stacks-block-height)
     (ok true)))
+
+;; Profile migration support
+(define-data-var profile-migration-active bool false)
+(define-data-var profiles-migrated uint u0)
+(define-map migrated-profiles principal { migrated-at: uint, from-version: uint })
+(define-read-only (get-profile-migration-state)
+  { active: (var-get profile-migration-active), migrated: (var-get profiles-migrated) })
+(define-public (migrate-profile (teacher principal))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (asserts\! (var-get profile-migration-active) (err u2500))
+    (map-set migrated-profiles teacher { migrated-at: stacks-block-height, from-version: u1 })
+    (var-set profiles-migrated (+ (var-get profiles-migrated) u1))
+    (ok true)))
