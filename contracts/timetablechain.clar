@@ -964,3 +964,28 @@
   (match (map-get? webhook-endpoints id)
     entry (begin (map-set webhook-endpoints id (merge entry { active: false })) (ok true))
     (err u3401)))
+
+;; Health check system
+(define-map health-checks uint { service: (string-ascii 32), status: bool, last-check: uint })
+(define-data-var health-count uint u0)
+(define-data-var health-interval uint u10)
+(define-public (register-health-check (service (string-ascii 32)))
+  (let ((id (+ (var-get health-count) u1)))
+    (map-set health-checks id { service: service, status: true, last-check: stacks-block-height })
+    (var-set health-count id)
+    (ok id)))
+(define-public (update-health-status (id uint) (status bool))
+  (match (map-get? health-checks id)
+    entry (begin
+      (map-set health-checks id (merge entry { status: status, last-check: stacks-block-height }))
+      (ok true))
+    (err u3500)))
+(define-read-only (is-healthy (id uint))
+  (match (map-get? health-checks id)
+    entry (get status entry)
+    false))
+(define-public (set-health-interval (blocks uint))
+  (begin
+    (asserts! (> blocks u0) (err u3501))
+    (var-set health-interval blocks)
+    (ok true)))
