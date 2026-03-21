@@ -669,3 +669,16 @@
     (asserts\! (< start end) (err u2301))
     (map-set slot-time-ranges slot-id { start: start, end: end })
     (ok true)))
+
+;; Teacher auth validation
+(define-data-var teacher-auth-strict bool true)
+(define-map teacher-credentials principal { verified: bool, verified-at: uint, credential-type: uint })
+(define-read-only (get-teacher-credential (teacher principal))
+  (map-get? teacher-credentials teacher))
+(define-read-only (is-teacher-verified (teacher principal))
+  (default-to false (get verified (map-get? teacher-credentials teacher))))
+(define-public (verify-teacher (teacher principal) (cred-type uint))
+  (begin
+    (asserts\! (is-contract-owner) ERR-NOT-AUTHORIZED)
+    (map-set teacher-credentials teacher { verified: true, verified-at: stacks-block-height, credential-type: cred-type })
+    (ok true)))
