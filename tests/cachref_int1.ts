@@ -1,0 +1,1 @@
+import{describe,it,expect}from"vitest";import{simnet}from"./setup";describe("cachref integration 1",()=>{it("full flow",()=>{const r=simnet.callReadOnlyFn("timetablechain","get-last-token-id",[],simnet.deployer);expect(r.result).toBeDefined();});});
