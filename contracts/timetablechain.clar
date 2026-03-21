@@ -726,3 +726,11 @@
   { min-size: BATCH-MIN-SIZE, max-size: (var-get batch-size-limit), cooldown: (var-get batch-cooldown) })
 (define-read-only (can-start-batch (user principal))
   (> (- stacks-block-height (default-to u0 (map-get? batch-timestamps user))) (var-get batch-cooldown)))
+
+;; Notification toggle improvements
+(define-data-var notif-global-override bool false)
+(define-data-var notif-rate-limit uint u5)
+(define-map notif-change-log uint { user: principal, changed-at: uint })
+(define-data-var notif-change-count uint u0)
+(define-read-only (get-notif-config)
+  { enabled: (var-get notifications-enabled), override: (var-get notif-global-override), rate-limit: (var-get notif-rate-limit) })
