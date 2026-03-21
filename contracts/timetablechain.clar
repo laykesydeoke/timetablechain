@@ -858,3 +858,19 @@
       (map-set waitlist-entries id { user: tx-sender, slot-id: slot-id, position: id, added-at: stacks-block-height })
       (var-set waitlist-count id)
       (ok id))))
+
+;; Audit trail logging
+(define-data-var audit-log-enabled bool true)
+(define-data-var audit-log-count uint u0)
+(define-map audit-entries uint { action: (string-ascii 32), actor: principal, target-id: uint, block: uint })
+(define-read-only (get-audit-entry (id uint))
+  (map-get? audit-entries id))
+(define-read-only (get-audit-params)
+  { enabled: (var-get audit-log-enabled), count: (var-get audit-log-count) })
+(define-public (log-audit-event (action (string-ascii 32)) (target-id uint))
+  (begin
+    (asserts\! (var-get audit-log-enabled) (err u2900))
+    (let ((id (+ (var-get audit-log-count) u1)))
+      (map-set audit-entries id { action: action, actor: tx-sender, target-id: target-id, block: stacks-block-height })
+      (var-set audit-log-count id)
+      (ok id))))
