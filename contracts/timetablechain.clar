@@ -2683,3 +2683,7 @@
   (match (map-get? deploy-hook-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-deploy-hook-owner (id uint))
+  (match (map-get? deploy-hook-registry id)
+    entry (ok (get owner entry))
+    (err u1301)))
