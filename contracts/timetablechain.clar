@@ -707,3 +707,13 @@
   { max-categories: MAX-CATEGORIES, max-per-cat: MAX-SLOTS-PER-CATEGORY, current: (var-get category-count) })
 (define-read-only (can-add-category)
   (< (var-get category-count) MAX-CATEGORIES))
+
+;; Rating score boundary validation
+(define-constant MIN-RATING-SCORE u0)
+(define-constant MAX-RATING-SCORE u5)
+(define-data-var rating-cooldown uint u10)
+(define-map rating-timestamps principal uint)
+(define-read-only (get-rating-bounds)
+  { min: MIN-RATING-SCORE, max: MAX-RATING-SCORE, cooldown: (var-get rating-cooldown) })
+(define-read-only (can-rate (user principal))
+  (> (- stacks-block-height (default-to u0 (map-get? rating-timestamps user))) (var-get rating-cooldown)))
