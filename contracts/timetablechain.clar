@@ -1000,3 +1000,14 @@
       (var-set cflres-cnt id) (ok id))))
 (define-read-only (get-cflres-entry (id uint))
   (map-get? cflres-log id))
+
+;; rmaloc tracking
+(define-map rmaloc-log uint { v: uint, at: uint })
+(define-data-var rmaloc-cnt uint u0)
+(define-public (log-rmaloc (val uint))
+  (begin (asserts! (> val u0) (err u4200))
+    (let ((id (+ (var-get rmaloc-cnt) u1)))
+      (map-set rmaloc-log id { v: val, at: stacks-block-height })
+      (var-set rmaloc-cnt id) (ok id))))
+(define-read-only (get-rmaloc-entry (id uint))
+  (map-get? rmaloc-log id))
