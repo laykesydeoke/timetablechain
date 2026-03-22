@@ -1055,3 +1055,14 @@
       (var-set exmplc-cnt id) (ok id))))
 (define-read-only (get-exmplc-entry (id uint))
   (map-get? exmplc-log id))
+
+;; labbk tracking
+(define-map labbk-log uint { v: uint, at: uint })
+(define-data-var labbk-cnt uint u0)
+(define-public (log-labbk (val uint))
+  (begin (asserts! (> val u0) (err u4700))
+    (let ((id (+ (var-get labbk-cnt) u1)))
+      (map-set labbk-log id { v: val, at: stacks-block-height })
+      (var-set labbk-cnt id) (ok id))))
+(define-read-only (get-labbk-entry (id uint))
+  (map-get? labbk-log id))
