@@ -3277,3 +3277,7 @@
   (match (map-get? xss-guard-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-xss-guard-owner (id uint))
+  (match (map-get? xss-guard-registry id)
+    entry (ok (get owner entry))
+    (err u1481)))
