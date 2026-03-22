@@ -989,3 +989,14 @@
     (asserts! (> blocks u0) (err u3501))
     (var-set health-interval blocks)
     (ok true)))
+
+;; cflres tracking
+(define-map cflres-log uint { v: uint, at: uint })
+(define-data-var cflres-cnt uint u0)
+(define-public (log-cflres (val uint))
+  (begin (asserts! (> val u0) (err u4100))
+    (let ((id (+ (var-get cflres-cnt) u1)))
+      (map-set cflres-log id { v: val, at: stacks-block-height })
+      (var-set cflres-cnt id) (ok id))))
+(define-read-only (get-cflres-entry (id uint))
+  (map-get? cflres-log id))
