@@ -1011,3 +1011,14 @@
       (var-set rmaloc-cnt id) (ok id))))
 (define-read-only (get-rmaloc-entry (id uint))
   (map-get? rmaloc-log id))
+
+;; insld tracking
+(define-map insld-log uint { v: uint, at: uint })
+(define-data-var insld-cnt uint u0)
+(define-public (log-insld (val uint))
+  (begin (asserts! (> val u0) (err u4300))
+    (let ((id (+ (var-get insld-cnt) u1)))
+      (map-set insld-log id { v: val, at: stacks-block-height })
+      (var-set insld-cnt id) (ok id))))
+(define-read-only (get-insld-entry (id uint))
+  (map-get? insld-log id))
