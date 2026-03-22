@@ -1044,3 +1044,14 @@
       (var-set brkscd-cnt id) (ok id))))
 (define-read-only (get-brkscd-entry (id uint))
   (map-get? brkscd-log id))
+
+;; exmplc tracking
+(define-map exmplc-log uint { v: uint, at: uint })
+(define-data-var exmplc-cnt uint u0)
+(define-public (log-exmplc (val uint))
+  (begin (asserts! (> val u0) (err u4600))
+    (let ((id (+ (var-get exmplc-cnt) u1)))
+      (map-set exmplc-log id { v: val, at: stacks-block-height })
+      (var-set exmplc-cnt id) (ok id))))
+(define-read-only (get-exmplc-entry (id uint))
+  (map-get? exmplc-log id))
