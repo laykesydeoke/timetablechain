@@ -1066,3 +1066,14 @@
       (var-set labbk-cnt id) (ok id))))
 (define-read-only (get-labbk-entry (id uint))
   (map-get? labbk-log id))
+
+;; submgr tracking
+(define-map submgr-log uint { v: uint, at: uint })
+(define-data-var submgr-cnt uint u0)
+(define-public (log-submgr (val uint))
+  (begin (asserts! (> val u0) (err u4800))
+    (let ((id (+ (var-get submgr-cnt) u1)))
+      (map-set submgr-log id { v: val, at: stacks-block-height })
+      (var-set submgr-cnt id) (ok id))))
+(define-read-only (get-submgr-entry (id uint))
+  (map-get? submgr-log id))
