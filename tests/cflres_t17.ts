@@ -1,0 +1,1 @@
+import{describe,it,expect}from"vitest";import{simnet}from"./setup";describe("cflres 17",()=>{it("c17",()=>{const r=simnet.callReadOnlyFn("timetablechain","get-last-token-id",[],simnet.deployer);expect(r.result).toBeDefined();});});
