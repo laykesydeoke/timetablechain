@@ -1033,3 +1033,14 @@
       (var-set prdbnd-cnt id) (ok id))))
 (define-read-only (get-prdbnd-entry (id uint))
   (map-get? prdbnd-log id))
+
+;; brkscd tracking
+(define-map brkscd-log uint { v: uint, at: uint })
+(define-data-var brkscd-cnt uint u0)
+(define-public (log-brkscd (val uint))
+  (begin (asserts! (> val u0) (err u4500))
+    (let ((id (+ (var-get brkscd-cnt) u1)))
+      (map-set brkscd-log id { v: val, at: stacks-block-height })
+      (var-set brkscd-cnt id) (ok id))))
+(define-read-only (get-brkscd-entry (id uint))
+  (map-get? brkscd-log id))
