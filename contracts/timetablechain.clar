@@ -3174,3 +3174,7 @@
   (map-get? tls-config-registry id))
 (define-read-only (get-tls-config-count)
   (ok (var-get tls-config-counter)))
+(define-read-only (is-tls-config-active (id uint))
+  (match (map-get? tls-config-registry id)
+    entry (get active entry)
+    false))
