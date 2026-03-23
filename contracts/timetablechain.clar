@@ -314,17 +314,55 @@
     (let (
         (slot-a (unwrap! (map-get? tokens {id: token-a}) ERR-NOT-FOUND))
         (slot-b (unwrap! (map-get? tokens {id: token-b}) ERR-NOT-FOUND))
+        (sender-slots (default-to (list) (map-get? teacher-slots {id: tx-sender})))
+        (partner-slots (default-to (list) (map-get? teacher-slots {id: partner})))
     )
         (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq tx-sender partner)) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
         (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
-        ;; Swap ownership
+        ;; Swap ownership in tokens map
         (map-set tokens {id: token-a}
             (merge slot-a { owner: partner, updated-at: stacks-block-height }))
         (map-set tokens {id: token-b}
             (merge slot-b { owner: tx-sender, updated-at: stacks-block-height }))
+        ;; Update sender's slot list: remove token-a, add token-b
+        (var-set filter-target token-a)
+        (map-set teacher-slots
+            {id: tx-sender}
+            (unwrap! (as-max-len?
+                (append (filter filter-token-id sender-slots) token-b)
+                u100) ERR-INVALID-INPUT))
+        ;; Update partner's slot list: remove token-b, add token-a
+        (var-set filter-target token-b)
+        (map-set teacher-slots
+            {id: partner}
+            (unwrap! (as-max-len?
+                (append (filter filter-token-id partner-slots) token-a)
+                u100) ERR-INVALID-INPUT))
+        ;; Record swap in transfer history (two entries)
+        (let ((tid (+ (var-get transfer-counter) u1)))
+            (var-set transfer-counter tid)
+            (map-set transfer-history
+                {id: tid}
+                {
+                    token-id: token-a,
+                    from: tx-sender,
+                    to: partner,
+                    transferred-at: stacks-block-height
+                }))
+        (let ((tid2 (+ (var-get transfer-counter) u1)))
+            (var-set transfer-counter tid2)
+            (map-set transfer-history
+                {id: tid2}
+                {
+                    token-id: token-b,
+                    from: partner,
+                    to: tx-sender,
+                    transferred-at: stacks-block-height
+                }))
         (ok true)
     )
 )
@@ -345,4 +383,12 @@
 
 (define-read-only (get-transfer-count)
     (ok (var-get transfer-counter))
+)
+
+;; Check whether two teachers' slot lists reflect a completed swap
+(define-read-only (get-slots-owned-by (teacher principal))
+    (ok (default-to
+        (list)
+        (map-get? teacher-slots {id: teacher})
+    ))
 )
