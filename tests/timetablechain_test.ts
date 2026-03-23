@@ -605,6 +605,29 @@ describe("timetablechain", () => {
       expect(result.result).toBeErr(Cl.uint(401));
     });
 
+    it("blocks self-swap", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(8), Cl.uint(101)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Science"), Cl.uint(7), Cl.uint(102)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(deployer)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(405));
+    });
+
     it("updates teacher slot lists after swap", () => {
       simnet.callPublicFn(
         "timetablechain",
