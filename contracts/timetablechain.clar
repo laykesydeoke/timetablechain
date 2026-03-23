@@ -249,7 +249,7 @@
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (get is-active token) ERR-INVALID-TOKEN)
-        (asserts! (not (is-slot-expired token-id)) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-id)) ERR-SLOT-EXPIRED)
 
         ;; Check if recipient can receive more slots
         (asserts! (is-some (as-max-len? (append recipient-slots token-id) u100))
@@ -337,8 +337,8 @@
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-SLOT-OWNER)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
         (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
-        (asserts! (not (is-slot-expired token-a)) ERR-INVALID-TOKEN)
-        (asserts! (not (is-slot-expired token-b)) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-a)) ERR-SLOT-EXPIRED)
+        (asserts! (not (is-slot-expired token-b)) ERR-SLOT-EXPIRED)
         ;; Swap ownership in tokens map
         (map-set tokens {id: token-a}
             (merge slot-a { owner: partner, updated-at: stacks-block-height }))
