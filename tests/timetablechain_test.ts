@@ -1030,4 +1030,76 @@ describe("timetablechain", () => {
       expect(result.result).toBeOk(Cl.list([Cl.bool(false)]));
     });
   });
+
+  describe("scheduling conflicts", () => {
+    it("blocks creating slot in same room+time-block", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(9), Cl.uint(201)],
+        deployer
+      );
+
+      // Same room and same time-block should fail
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Physics"), Cl.uint(10), Cl.uint(201)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(409));
+    });
+
+    it("allows creating slot after room is freed by deactivation", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(8), Cl.uint(301)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      // After deactivation, room+time-block should be available again
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("History"), Cl.uint(7), Cl.uint(301)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.uint(2));
+    });
+
+    it("has-scheduling-conflict returns true for occupied slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Chemistry"), Cl.uint(11), Cl.uint(401)],
+        deployer
+      );
+
+      const conflict = simnet.callReadOnlyFn(
+        "timetablechain",
+        "has-scheduling-conflict",
+        [Cl.uint(401), Cl.uint(100)],
+        deployer
+      );
+      expect(conflict.result).toBeOk(Cl.bool(true));
+    });
+
+    it("has-scheduling-conflict returns false for free slot", () => {
+      const conflict = simnet.callReadOnlyFn(
+        "timetablechain",
+        "has-scheduling-conflict",
+        [Cl.uint(999), Cl.uint(100)],
+        deployer
+      );
+      expect(conflict.result).toBeOk(Cl.bool(false));
+    });
+  });
 });

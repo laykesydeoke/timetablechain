@@ -77,6 +77,12 @@
 ;; Count of active (non-deactivated) slots
 (define-data-var active-slot-count uint u0)
 
+;; Room schedule: prevent double-booking (room + time-block -> token-id)
+(define-map room-schedule
+    {room-id: uint, time-block: uint}
+    {token-id: uint}
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
@@ -119,6 +125,11 @@
     (match (map-get? tokens {id: token-id})
         token-data (> stacks-block-height (get time-block token-data))
         true))
+
+;; Check if a room+time-block combination already has an active slot
+(define-private (has-room-conflict (room-id uint) (time-block uint))
+    (is-some (map-get? room-schedule {room-id: room-id, time-block: time-block}))
+)
 
 ;; Check if a slot is transferable (active and not expired)
 (define-private (is-slot-transferable (token-id uint))
@@ -228,6 +239,7 @@
         (asserts! (is-valid-subject subject) ERR-INVALID-INPUT)
         (asserts! (is-valid-grade grade) ERR-INVALID-GRADE)
         (asserts! (is-valid-room room-id) ERR-INVALID-ROOM)
+        (asserts! (not (has-room-conflict room-id time-block)) ERR-ALREADY-EXISTS)
 
         ;; Create token
         (map-set tokens
@@ -268,6 +280,11 @@
             (unwrap! (as-max-len?
                 (append (default-to (list) (map-get? room-index {room-id: room-id})) new-id)
                 u200) ERR-INVALID-INPUT))
+
+        ;; Register room+time-block to prevent future conflicts
+        (map-set room-schedule
+            {room-id: room-id, time-block: time-block}
+            {token-id: new-id})
 
         ;; Increment active slot count
         (var-set active-slot-count (+ (var-get active-slot-count) u1))
@@ -351,6 +368,9 @@
                     (- (var-get active-slot-count) u1)
                     u0))
             true)
+        ;; Clear room schedule entry so the room+time-block is available again
+        (map-delete room-schedule
+            {room-id: (get room-id token), time-block: (get time-block token)})
         (ok true)
     )
 )
@@ -362,6 +382,7 @@
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
         (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
+        (asserts! (not (has-room-conflict (get room-id token) new-time-block)) ERR-ALREADY-EXISTS)
         (map-set tokens
             {id: token-id}
             (merge token {
@@ -369,6 +390,10 @@
                 time-block: new-time-block,
                 updated-at: stacks-block-height
             }))
+        ;; Register new room schedule entry
+        (map-set room-schedule
+            {room-id: (get room-id token), time-block: new-time-block}
+            {token-id: token-id})
         (ok true)
     )
 )
@@ -581,4 +606,9 @@
 ;; Count of active (non-deactivated) slots
 (define-read-only (get-active-slot-count)
     (ok (var-get active-slot-count))
+)
+
+;; Check if a room+time-block would conflict with an existing active slot
+(define-read-only (has-scheduling-conflict (room-id uint) (time-block uint))
+    (ok (has-room-conflict room-id time-block))
 )
