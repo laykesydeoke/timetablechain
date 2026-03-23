@@ -58,6 +58,25 @@
     }
 )
 
+;; Search indexes: map subject/grade/room to list of token-ids
+(define-map subject-index
+    {subject: (string-ascii 64)}
+    (list 200 uint)
+)
+
+(define-map grade-index
+    {grade: uint}
+    (list 200 uint)
+)
+
+(define-map room-index
+    {room-id: uint}
+    (list 200 uint)
+)
+
+;; Count of active (non-deactivated) slots
+(define-data-var active-slot-count uint u0)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
