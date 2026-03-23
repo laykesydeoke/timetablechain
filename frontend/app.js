@@ -1,6 +1,17 @@
-var API_URL = 'https://api.testnet.hiro.so';
-var CONTRACT_ADDRESS = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-var CONTRACT_NAME = 'timetablechain';
+// ---- Config ----
+var CONFIG = {
+    apiUrl: 'https://api.testnet.hiro.so',
+    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+    contractName: 'timetablechain',
+    network: 'testnet',
+    maxSlotDisplay: 20,
+    repoUrl: 'https://github.com/laykesydeoke/timetablechain'
+};
+// ---- End Config ----
+
+var API_URL = CONFIG.apiUrl;
+var CONTRACT_ADDRESS = CONFIG.contractAddress;
+var CONTRACT_NAME = CONFIG.contractName;
 var userAddress = null;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -87,21 +98,41 @@ function onConnected(address) {
     loadSlots();
 }
 
+function parseClarinetUint(hexResult) {
+    if (!hexResult || typeof hexResult !== 'string') { return 0; }
+    // Clarity ok-uint is prefixed with 0x0100...
+    var clean = hexResult.replace(/^0x/, '');
+    if (clean.startsWith('0100')) {
+        clean = clean.slice(4);
+    }
+    var parsed = parseInt(clean, 16);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function encodeUint(id) {
+    if (typeof id !== 'number' || id < 0 || !isFinite(id)) {
+        throw new Error('Invalid id for encoding: ' + id);
+    }
+    return '0x' + id.toString(16).padStart(32, '0');
+}
+
 function loadSlotCount() {
     callReadOnly('get-last-token-id', [])
         .then(function (data) {
             if (data && data.okay && data.result) {
-                var count = parseInt(data.result.replace('0x01', ''), 16) || 0;
+                var count = parseClarinetUint(data.result);
                 if (count > 0) {
                     loadSlotsFromChain(count);
                 } else {
                     renderSampleSlots();
                 }
             } else {
+                showError('No slots found on chain. Showing sample data.');
                 renderSampleSlots();
             }
         })
-        .catch(function () {
+        .catch(function (err) {
+            showError('Failed to load slot count: ' + (err && err.message ? err.message : 'network error'));
             renderSampleSlots();
         });
 }
@@ -116,24 +147,62 @@ function loadSlotsFromChain(count) {
         grid.removeChild(grid.firstChild);
     }
 
+    var limit = Math.min(count, CONFIG.maxSlotDisplay);
     var loaded = 0;
-    for (var i = 1; i <= Math.min(count, 20); i++) {
+
+    for (var i = 1; i <= limit; i++) {
         (function (id) {
-            callReadOnly('get-slot-details', ['0x01' + id.toString(16).padStart(32, '0')])
+            var encoded;
+            try {
+                encoded = '0x01' + encodeUint(id).replace(/^0x/, '');
+            } catch (e) {
+                loaded++;
+                return;
+            }
+            callReadOnly('get-slot-details', [encoded])
                 .then(function (data) {
                     loaded++;
                     if (data && data.okay && data.result) {
                         appendSlotCard(grid, id, data.result);
+                    } else if (data && !data.okay) {
+                        showError('Error loading slot ' + id + ': ' + (data.cause || 'unknown'));
                     }
-                    if (loaded >= Math.min(count, 20) && grid.children.length === 0) {
+                    if (loaded >= limit && grid.children.length === 0) {
                         renderSampleSlots();
                     }
                 })
-                .catch(function () {
+                .catch(function (err) {
                     loaded++;
+                    showError('Network error loading slot ' + id + ': ' + (err && err.message ? err.message : ''));
                 });
         })(i);
     }
+}
+
+function showError(msg) {
+    var errEl = document.getElementById('errorBanner');
+    if (!errEl) {
+        errEl = document.createElement('div');
+        errEl.id = 'errorBanner';
+        errEl.style.cssText = 'background:#fee;color:#c00;padding:8px 16px;border-radius:4px;margin:8px 0;font-size:0.9em;';
+        var grid = document.getElementById('slotsGrid');
+        if (grid && grid.parentNode) {
+            grid.parentNode.insertBefore(errEl, grid);
+        }
+    }
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    setTimeout(function () { errEl.style.display = 'none'; }, 5000);
+}
+
+function getSlotStatus(slotData) {
+    if (!slotData['is-active']) { return 'inactive'; }
+    var timeBlock = slotData['time-block'];
+    if (timeBlock && typeof timeBlock === 'number') {
+        // approximate: if time-block is in the past relative to now
+        return 'active';
+    }
+    return 'active';
 }
 
 function appendSlotCard(grid, id, slotData) {
@@ -162,6 +231,12 @@ function appendSlotCard(grid, id, slotData) {
         room.textContent = 'Room ' + slotData['room-id'];
         card.appendChild(room);
     }
+
+    var status = document.createElement('span');
+    var isActive = slotData['is-active'];
+    status.className = 'slot-status slot-status--' + (isActive ? 'active' : 'inactive');
+    status.textContent = isActive ? 'Active' : 'Inactive';
+    card.appendChild(status);
 
     grid.appendChild(card);
 }
