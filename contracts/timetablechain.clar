@@ -301,6 +301,17 @@
         ;; Increment active slot count
         (var-set active-slot-count (+ (var-get active-slot-count) u1))
         (var-set last-token-id new-id)
+
+        ;; Update teacher stats
+        (let ((stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge stats {
+                    total-created: (+ (get total-created stats) u1),
+                    active-count: (+ (get active-count stats) u1)
+                })))
+
         (ok new-id)
     )
 )
