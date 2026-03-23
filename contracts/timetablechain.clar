@@ -1176,3 +1176,14 @@
       (var-set cmprpt-cnt id) (ok id))))
 (define-read-only (get-cmprpt-entry (id uint))
   (map-get? cmprpt-log id))
+
+;; acmcal tracking
+(define-map acmcal-log uint { v: uint, at: uint })
+(define-data-var acmcal-cnt uint u0)
+(define-public (log-acmcal (val uint))
+  (begin (asserts! (> val u0) (err u5800))
+    (let ((id (+ (var-get acmcal-cnt) u1)))
+      (map-set acmcal-log id { v: val, at: stacks-block-height })
+      (var-set acmcal-cnt id) (ok id))))
+(define-read-only (get-acmcal-entry (id uint))
+  (map-get? acmcal-log id))
