@@ -452,4 +452,157 @@ describe("timetablechain", () => {
       expect(transfer.result).toBeOk(Cl.bool(true));
     });
   });
+
+  describe("slot reactivation", () => {
+    it("allows owner to reactivate deactivated slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(5), Cl.uint(101)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "reactivate-slot",
+        [Cl.uint(1), Cl.uint(500)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.bool(true));
+    });
+
+    it("blocks non-owner from reactivating slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Science"), Cl.uint(6), Cl.uint(102)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "reactivate-slot",
+        [Cl.uint(1), Cl.uint(500)],
+        wallet1
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+
+    it("blocks reactivation of already active slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(7), Cl.uint(103)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "reactivate-slot",
+        [Cl.uint(1), Cl.uint(500)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(409));
+    });
+  });
+
+  describe("slot swap", () => {
+    it("swaps slots between two teachers", () => {
+      // Authorize wallet1 as teacher
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      // Deployer creates slot 1
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(8), Cl.uint(101)],
+        deployer
+      );
+
+      // Wallet1 creates slot 2
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Physics"), Cl.uint(9), Cl.uint(202)],
+        wallet1
+      );
+
+      // Deployer initiates swap
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.bool(true));
+
+      // Verify ownership swapped
+      const ownerA = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-token-owner",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(ownerA.result).toBeOk(Cl.principal(wallet1));
+
+      const ownerB = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-token-owner",
+        [Cl.uint(2)],
+        deployer
+      );
+      expect(ownerB.result).toBeOk(Cl.principal(deployer));
+    });
+
+    it("blocks swap if caller does not own slot-a", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(4), Cl.uint(301)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Music"), Cl.uint(5), Cl.uint(302)],
+        wallet1
+      );
+
+      // Wallet1 tries to swap but doesn't own slot 1
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(deployer)],
+        wallet1
+      );
+      expect(result.result).toBeErr(Cl.uint(401));
+    });
+  });
 });

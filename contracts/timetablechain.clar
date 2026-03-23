@@ -92,6 +92,11 @@
     )
 )
 
+(define-private (is-slot-expired (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data (> stacks-block-height (get time-block token-data))
+        true))
+
 ;; Check if caller is authorized to create slots
 (define-private (can-create-slot)
     (or
@@ -287,12 +292,52 @@
     )
 )
 
+(define-public (reactivate-slot (token-id uint) (new-time-block uint))
+    (let (
+        (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
+    )
+        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
+        (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
+        (map-set tokens
+            {id: token-id}
+            (merge token {
+                is-active: true,
+                time-block: new-time-block,
+                updated-at: stacks-block-height
+            }))
+        (ok true)
+    )
+)
+
+(define-public (swap-slots (token-a uint) (token-b uint) (partner principal))
+    (let (
+        (slot-a (unwrap! (map-get? tokens {id: token-a}) ERR-NOT-FOUND))
+        (slot-b (unwrap! (map-get? tokens {id: token-b}) ERR-NOT-FOUND))
+    )
+        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
+        (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
+        ;; Swap ownership
+        (map-set tokens {id: token-a}
+            (merge slot-a { owner: partner, updated-at: stacks-block-height }))
+        (map-set tokens {id: token-b}
+            (merge slot-b { owner: tx-sender, updated-at: stacks-block-height }))
+        (ok true)
+    )
+)
+
 (define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
         (ok (var-set contract-paused (not (var-get contract-paused))))
     )
 )
+
+(define-read-only (is-slot-expired-ro (token-id uint))
+    (ok (is-slot-expired token-id)))
 
 (define-read-only (get-transfer-record (id uint))
     (map-get? transfer-history {id: id})
