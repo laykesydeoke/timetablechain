@@ -247,6 +247,31 @@ body {
     padding: 2rem;
 }
 
+.slot-status {
+    display: inline-block;
+    margin-top: 0.6rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.slot-status--active {
+    background: #e6f9ec;
+    color: #1a7a3c;
+}
+
+.slot-status--inactive {
+    background: #fef3e2;
+    color: #b05c00;
+}
+
+.slot-status--expired {
+    background: #fce8e8;
+    color: #c0392b;
+}
+
 /* Nav right */
 .nav-right {
     display: flex;
