@@ -1,6 +1,17 @@
-var API_URL = 'https://api.testnet.hiro.so';
-var CONTRACT_ADDRESS = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
-var CONTRACT_NAME = 'timetablechain';
+// ---- Config ----
+var CONFIG = {
+    apiUrl: 'https://api.testnet.hiro.so',
+    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+    contractName: 'timetablechain',
+    network: 'testnet',
+    maxSlotDisplay: 20,
+    repoUrl: 'https://github.com/laykesydeoke/timetablechain'
+};
+// ---- End Config ----
+
+var API_URL = CONFIG.apiUrl;
+var CONTRACT_ADDRESS = CONFIG.contractAddress;
+var CONTRACT_NAME = CONFIG.contractName;
 var userAddress = null;
 
 document.addEventListener('DOMContentLoaded', function () {
