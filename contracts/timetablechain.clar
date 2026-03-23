@@ -1088,3 +1088,14 @@
       (var-set attsyn-cnt id) (ok id))))
 (define-read-only (get-attsyn-entry (id uint))
   (map-get? attsyn-log id))
+
+;; grdexp tracking
+(define-map grdexp-log uint { v: uint, at: uint })
+(define-data-var grdexp-cnt uint u0)
+(define-public (log-grdexp (val uint))
+  (begin (asserts! (> val u0) (err u5000))
+    (let ((id (+ (var-get grdexp-cnt) u1)))
+      (map-set grdexp-log id { v: val, at: stacks-block-height })
+      (var-set grdexp-cnt id) (ok id))))
+(define-read-only (get-grdexp-entry (id uint))
+  (map-get? grdexp-log id))
