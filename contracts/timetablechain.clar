@@ -1143,3 +1143,14 @@
       (var-set wltpri-cnt id) (ok id))))
 (define-read-only (get-wltpri-entry (id uint))
   (map-get? wltpri-log id))
+
+;; fdbklp tracking
+(define-map fdbklp-log uint { v: uint, at: uint })
+(define-data-var fdbklp-cnt uint u0)
+(define-public (log-fdbklp (val uint))
+  (begin (asserts! (> val u0) (err u5500))
+    (let ((id (+ (var-get fdbklp-cnt) u1)))
+      (map-set fdbklp-log id { v: val, at: stacks-block-height })
+      (var-set fdbklp-cnt id) (ok id))))
+(define-read-only (get-fdbklp-entry (id uint))
+  (map-get? fdbklp-log id))
