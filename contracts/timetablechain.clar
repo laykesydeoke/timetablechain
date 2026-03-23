@@ -233,7 +233,7 @@
         ;; Add to recipient's slot list
         (map-set teacher-slots
             {id: recipient}
-            (unwrap-panic (as-max-len? (append recipient-slots token-id) u100)))
+            (unwrap! (as-max-len? (append recipient-slots token-id) u100) ERR-INVALID-INPUT))
 
         ;; Update token ownership
         (map-set tokens
