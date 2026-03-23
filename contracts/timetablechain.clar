@@ -92,6 +92,11 @@
     )
 )
 
+(define-private (is-slot-expired (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data (> stacks-block-height (get time-block token-data))
+        true))
+
 ;; Check if caller is authorized to create slots
 (define-private (can-create-slot)
     (or
