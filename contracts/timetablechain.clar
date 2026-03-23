@@ -3644,3 +3644,5 @@
   (match (map-get? url-encode-registry id)
     entry (ok (get owner entry))
     (err u1591)))
+(define-read-only (get-url-encode-value (id uint))
+  (default-to u0 (get value (map-get? url-encode-registry id))))
