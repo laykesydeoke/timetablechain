@@ -1165,3 +1165,14 @@
       (var-set rstrk-cnt id) (ok id))))
 (define-read-only (get-rstrk-entry (id uint))
   (map-get? rstrk-log id))
+
+;; cmprpt tracking
+(define-map cmprpt-log uint { v: uint, at: uint })
+(define-data-var cmprpt-cnt uint u0)
+(define-public (log-cmprpt (val uint))
+  (begin (asserts! (> val u0) (err u5700))
+    (let ((id (+ (var-get cmprpt-cnt) u1)))
+      (map-set cmprpt-log id { v: val, at: stacks-block-height })
+      (var-set cmprpt-cnt id) (ok id))))
+(define-read-only (get-cmprpt-entry (id uint))
+  (map-get? cmprpt-log id))
