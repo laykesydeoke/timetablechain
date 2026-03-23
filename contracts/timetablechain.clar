@@ -502,6 +502,36 @@
     )
 )
 
+;; Batch deactivate up to 10 owned slots
+(define-public (batch-deactivate-slots (token-ids (list 10 uint)))
+    (begin
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
+        (asserts! (> (len token-ids) u0) ERR-INVALID-INPUT)
+        (ok (map deactivate-slot-if-owner token-ids))
+    )
+)
+
+(define-private (deactivate-slot-if-owner (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data
+            (if (is-eq tx-sender (get owner token-data))
+                (begin
+                    (map-set tokens {id: token-id}
+                        (merge token-data {
+                            is-active: false,
+                            updated-at: stacks-block-height
+                        }))
+                    (if (get is-active token-data)
+                        (var-set active-slot-count
+                            (if (> (var-get active-slot-count) u0)
+                                (- (var-get active-slot-count) u1)
+                                u0))
+                        true)
+                    true)
+                false)
+        false)
+)
+
 (define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
