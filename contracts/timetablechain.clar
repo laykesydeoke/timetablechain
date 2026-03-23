@@ -509,6 +509,25 @@
                     to: tx-sender,
                     transferred-at: stacks-block-height
                 }))
+
+        ;; Update swap stats for caller
+        (let ((caller-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge caller-stats {
+                    total-swapped: (+ (get total-swapped caller-stats) u1)
+                })))
+
+        ;; Update swap stats for partner
+        (let ((partner-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: partner}))))
+            (map-set teacher-stats {teacher: partner}
+                (merge partner-stats {
+                    total-swapped: (+ (get total-swapped partner-stats) u1)
+                })))
+
         (ok true)
     )
 )
