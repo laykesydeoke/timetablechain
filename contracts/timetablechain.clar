@@ -293,3 +293,11 @@
         (ok (var-set contract-paused (not (var-get contract-paused))))
     )
 )
+
+(define-read-only (get-transfer-record (id uint))
+    (map-get? transfer-history {id: id})
+)
+
+(define-read-only (get-transfer-count)
+    (ok (var-get transfer-counter))
+)
