@@ -336,6 +336,9 @@
     )
 )
 
+(define-read-only (is-slot-expired-ro (token-id uint))
+    (ok (is-slot-expired token-id)))
+
 (define-read-only (get-transfer-record (id uint))
     (map-get? transfer-history {id: id})
 )
