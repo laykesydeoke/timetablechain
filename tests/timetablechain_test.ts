@@ -453,6 +453,82 @@ describe("timetablechain", () => {
     });
   });
 
+  describe("expiration checks", () => {
+    it("blocks transfer of expired slot", () => {
+      // time-block of 1 is in the past (current block > 1)
+      // Mine blocks to advance past time-block
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Latin"), Cl.uint(10), Cl.uint(555)],
+        deployer
+      );
+
+      // Mine blocks past the time-block
+      simnet.mineEmptyBlocks(200);
+
+      const transfer = simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(wallet1)],
+        deployer
+      );
+      expect(transfer.result).toBeErr(Cl.uint(406));
+    });
+
+    it("blocks swap when slot-a is expired", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Drama"), Cl.uint(8), Cl.uint(301)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(300), Cl.stringAscii("Dance"), Cl.uint(9), Cl.uint(302)],
+        wallet1
+      );
+
+      simnet.mineEmptyBlocks(200);
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(406));
+    });
+
+    it("is-slot-expired-ro returns true for expired slot", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Ethics"), Cl.uint(5), Cl.uint(201)],
+        deployer
+      );
+
+      simnet.mineEmptyBlocks(200);
+
+      const expired = simnet.callReadOnlyFn(
+        "timetablechain",
+        "is-slot-expired-ro",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(expired.result).toBeOk(Cl.bool(true));
+    });
+  });
+
   describe("slot reactivation", () => {
     it("allows owner to reactivate deactivated slot", () => {
       simnet.callPublicFn(
