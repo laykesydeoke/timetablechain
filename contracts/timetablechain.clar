@@ -1187,3 +1187,14 @@
       (var-set acmcal-cnt id) (ok id))))
 (define-read-only (get-acmcal-entry (id uint))
   (map-get? acmcal-log id))
+
+;; crdval tracking
+(define-map crdval-log uint { v: uint, at: uint })
+(define-data-var crdval-cnt uint u0)
+(define-public (log-crdval (val uint))
+  (begin (asserts! (> val u0) (err u5900))
+    (let ((id (+ (var-get crdval-cnt) u1)))
+      (map-set crdval-log id { v: val, at: stacks-block-height })
+      (var-set crdval-cnt id) (ok id))))
+(define-read-only (get-crdval-entry (id uint))
+  (map-get? crdval-log id))
