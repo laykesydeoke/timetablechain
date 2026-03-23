@@ -383,3 +383,11 @@
 (define-read-only (get-transfer-count)
     (ok (var-get transfer-counter))
 )
+
+;; Check whether two teachers' slot lists reflect a completed swap
+(define-read-only (get-slots-owned-by (teacher principal))
+    (ok (default-to
+        (list)
+        (map-get? teacher-slots {id: teacher})
+    ))
+)
