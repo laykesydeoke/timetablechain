@@ -382,6 +382,7 @@
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
         (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
+        (asserts! (not (has-room-conflict (get room-id token) new-time-block)) ERR-ALREADY-EXISTS)
         (map-set tokens
             {id: token-id}
             (merge token {
@@ -389,6 +390,10 @@
                 time-block: new-time-block,
                 updated-at: stacks-block-height
             }))
+        ;; Register new room schedule entry
+        (map-set room-schedule
+            {room-id: (get room-id token), time-block: new-time-block}
+            {token-id: token-id})
         (ok true)
     )
 )
