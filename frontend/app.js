@@ -147,21 +147,33 @@ function loadSlotsFromChain(count) {
         grid.removeChild(grid.firstChild);
     }
 
+    var limit = Math.min(count, CONFIG.maxSlotDisplay);
     var loaded = 0;
-    for (var i = 1; i <= Math.min(count, 20); i++) {
+
+    for (var i = 1; i <= limit; i++) {
         (function (id) {
-            callReadOnly('get-slot-details', ['0x01' + id.toString(16).padStart(32, '0')])
+            var encoded;
+            try {
+                encoded = '0x01' + encodeUint(id).replace(/^0x/, '');
+            } catch (e) {
+                loaded++;
+                return;
+            }
+            callReadOnly('get-slot-details', [encoded])
                 .then(function (data) {
                     loaded++;
                     if (data && data.okay && data.result) {
                         appendSlotCard(grid, id, data.result);
+                    } else if (data && !data.okay) {
+                        showError('Error loading slot ' + id + ': ' + (data.cause || 'unknown'));
                     }
-                    if (loaded >= Math.min(count, 20) && grid.children.length === 0) {
+                    if (loaded >= limit && grid.children.length === 0) {
                         renderSampleSlots();
                     }
                 })
-                .catch(function () {
+                .catch(function (err) {
                     loaded++;
+                    showError('Network error loading slot ' + id + ': ' + (err && err.message ? err.message : ''));
                 });
         })(i);
     }
