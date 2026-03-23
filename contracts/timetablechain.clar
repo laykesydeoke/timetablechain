@@ -1099,3 +1099,14 @@
       (var-set grdexp-cnt id) (ok id))))
 (define-read-only (get-grdexp-entry (id uint))
   (map-get? grdexp-log id))
+
+;; curmap tracking
+(define-map curmap-log uint { v: uint, at: uint })
+(define-data-var curmap-cnt uint u0)
+(define-public (log-curmap (val uint))
+  (begin (asserts! (> val u0) (err u5100))
+    (let ((id (+ (var-get curmap-cnt) u1)))
+      (map-set curmap-log id { v: val, at: stacks-block-height })
+      (var-set curmap-cnt id) (ok id))))
+(define-read-only (get-curmap-entry (id uint))
+  (map-get? curmap-log id))
