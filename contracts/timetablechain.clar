@@ -408,10 +408,21 @@
             }))
         ;; Decrement active slot count if slot was active
         (if (get is-active token)
-            (var-set active-slot-count
-                (if (> (var-get active-slot-count) u0)
-                    (- (var-get active-slot-count) u1)
-                    u0))
+            (begin
+                (var-set active-slot-count
+                    (if (> (var-get active-slot-count) u0)
+                        (- (var-get active-slot-count) u1)
+                        u0))
+                ;; Decrement teacher active-count
+                (let ((stats (default-to
+                        {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                        (map-get? teacher-stats {teacher: tx-sender}))))
+                    (map-set teacher-stats {teacher: tx-sender}
+                        (merge stats {
+                            active-count: (if (> (get active-count stats) u0)
+                                (- (get active-count stats) u1)
+                                u0)
+                        }))))
             true)
         ;; Clear room schedule entry so the room+time-block is available again
         (map-delete room-schedule
