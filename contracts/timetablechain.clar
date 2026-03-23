@@ -404,3 +404,8 @@
         (map-get? teacher-slots {id: teacher})
     ))
 )
+
+;; Return whether a slot is both active and not expired
+(define-read-only (is-slot-transferable-ro (token-id uint))
+    (ok (is-slot-transferable token-id))
+)
