@@ -236,6 +236,7 @@
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active token) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-id)) ERR-INVALID-TOKEN)
 
         ;; Check if recipient can receive more slots
         (asserts! (is-some (as-max-len? (append recipient-slots token-id) u100))
