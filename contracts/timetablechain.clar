@@ -450,6 +450,17 @@
         (map-set room-schedule
             {room-id: (get room-id token), time-block: new-time-block}
             {token-id: token-id})
+
+        ;; Increment active-count back on reactivation
+        (var-set active-slot-count (+ (var-get active-slot-count) u1))
+        (let ((stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge stats {
+                    active-count: (+ (get active-count stats) u1)
+                })))
+
         (ok true)
     )
 )
