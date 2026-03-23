@@ -83,6 +83,18 @@
     {token-id: uint}
 )
 
+;; Teacher statistics tracking
+(define-map teacher-stats
+    {teacher: principal}
+    {
+        total-created: uint,
+        total-transferred-out: uint,
+        total-transferred-in: uint,
+        total-swapped: uint,
+        active-count: uint
+    }
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
