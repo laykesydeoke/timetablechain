@@ -126,6 +126,11 @@
         token-data (> stacks-block-height (get time-block token-data))
         true))
 
+;; Check if a room+time-block combination already has an active slot
+(define-private (has-room-conflict (room-id uint) (time-block uint))
+    (is-some (map-get? room-schedule {room-id: room-id, time-block: time-block}))
+)
+
 ;; Check if a slot is transferable (active and not expired)
 (define-private (is-slot-transferable (token-id uint))
     (match (map-get? tokens {id: token-id})
@@ -234,6 +239,7 @@
         (asserts! (is-valid-subject subject) ERR-INVALID-INPUT)
         (asserts! (is-valid-grade grade) ERR-INVALID-GRADE)
         (asserts! (is-valid-room room-id) ERR-INVALID-ROOM)
+        (asserts! (not (has-room-conflict room-id time-block)) ERR-ALREADY-EXISTS)
 
         ;; Create token
         (map-set tokens
@@ -274,6 +280,11 @@
             (unwrap! (as-max-len?
                 (append (default-to (list) (map-get? room-index {room-id: room-id})) new-id)
                 u200) ERR-INVALID-INPUT))
+
+        ;; Register room+time-block to prevent future conflicts
+        (map-set room-schedule
+            {room-id: room-id, time-block: time-block}
+            {token-id: new-id})
 
         ;; Increment active slot count
         (var-set active-slot-count (+ (var-get active-slot-count) u1))
