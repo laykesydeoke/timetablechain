@@ -255,6 +255,18 @@
                 updated-at: stacks-block-height
             }))
 
+        ;; Record transfer history
+        (let ((tid (+ (var-get transfer-counter) u1)))
+            (var-set transfer-counter tid)
+            (map-set transfer-history
+                {id: tid}
+                {
+                    token-id: token-id,
+                    from: tx-sender,
+                    to: recipient,
+                    transferred-at: stacks-block-height
+                }))
+
         (ok true)
     )
 )
