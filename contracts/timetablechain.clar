@@ -318,6 +318,7 @@
         (partner-slots (default-to (list) (map-get? teacher-slots {id: partner})))
     )
         (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq tx-sender partner)) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
