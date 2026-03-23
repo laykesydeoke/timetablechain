@@ -3475,3 +3475,7 @@
   (match (map-get? date-parse-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-date-parse-owner (id uint))
+  (match (map-get? date-parse-registry id)
+    entry (ok (get owner entry))
+    (err u1541)))
