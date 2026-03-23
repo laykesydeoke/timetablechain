@@ -3376,3 +3376,7 @@
   (match (map-get? l10n-mgr-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-l10n-mgr-owner (id uint))
+  (match (map-get? l10n-mgr-registry id)
+    entry (ok (get owner entry))
+    (err u1511)))
