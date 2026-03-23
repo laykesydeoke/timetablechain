@@ -97,6 +97,15 @@
         token-data (> stacks-block-height (get time-block token-data))
         true))
 
+;; Check if a slot is transferable (active and not expired)
+(define-private (is-slot-transferable (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data (and
+            (get is-active token-data)
+            (not (> stacks-block-height (get time-block token-data))))
+        false)
+)
+
 ;; Check if caller is authorized to create slots
 (define-private (can-create-slot)
     (or
