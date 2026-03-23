@@ -807,4 +807,123 @@ describe("timetablechain", () => {
       expect(rec2.result).not.toBeNone();
     });
   });
+
+  describe("slot search and filter", () => {
+    it("get-slots-by-subject returns matching tokens", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Algebra"), Cl.uint(9), Cl.uint(101)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Algebra"), Cl.uint(10), Cl.uint(102)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(300), Cl.stringAscii("Biology"), Cl.uint(11), Cl.uint(103)],
+        deployer
+      );
+
+      const result = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slots-by-subject",
+        [Cl.stringAscii("Algebra")],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.list([Cl.uint(1), Cl.uint(2)]));
+    });
+
+    it("get-slots-by-grade returns matching tokens", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Chemistry"), Cl.uint(8), Cl.uint(201)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Physics"), Cl.uint(8), Cl.uint(202)],
+        deployer
+      );
+
+      const result = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slots-by-grade",
+        [Cl.uint(8)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.list([Cl.uint(1), Cl.uint(2)]));
+    });
+
+    it("get-slots-by-room returns matching tokens", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(7), Cl.uint(303)],
+        deployer
+      );
+
+      const result = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slots-by-room",
+        [Cl.uint(303)],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.list([Cl.uint(1)]));
+    });
+
+    it("get-active-slot-count decrements on deactivate", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(5), Cl.uint(401)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("PE"), Cl.uint(6), Cl.uint(402)],
+        deployer
+      );
+
+      const countBefore = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-active-slot-count",
+        [],
+        deployer
+      );
+      expect(countBefore.result).toBeOk(Cl.uint(2));
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      const countAfter = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-active-slot-count",
+        [],
+        deployer
+      );
+      expect(countAfter.result).toBeOk(Cl.uint(1));
+    });
+
+    it("returns empty list for unknown subject", () => {
+      const result = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slots-by-subject",
+        [Cl.stringAscii("Underwater Basket Weaving")],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.list([]));
+    });
+  });
 });

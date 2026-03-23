@@ -58,6 +58,25 @@
     }
 )
 
+;; Search indexes: map subject/grade/room to list of token-ids
+(define-map subject-index
+    {subject: (string-ascii 64)}
+    (list 200 uint)
+)
+
+(define-map grade-index
+    {grade: uint}
+    (list 200 uint)
+)
+
+(define-map room-index
+    {room-id: uint}
+    (list 200 uint)
+)
+
+;; Count of active (non-deactivated) slots
+(define-data-var active-slot-count uint u0)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
@@ -229,6 +248,29 @@
             {id: tx-sender}
             (unwrap! (as-max-len? (append current-slots new-id) u100) ERR-INVALID-INPUT))
 
+        ;; Update subject index
+        (map-set subject-index
+            {subject: subject}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? subject-index {subject: subject})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Update grade index
+        (map-set grade-index
+            {grade: grade}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? grade-index {grade: grade})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Update room index
+        (map-set room-index
+            {room-id: room-id}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? room-index {room-id: room-id})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Increment active slot count
+        (var-set active-slot-count (+ (var-get active-slot-count) u1))
         (var-set last-token-id new-id)
         (ok new-id)
     )
@@ -302,6 +344,13 @@
                 is-active: false,
                 updated-at: stacks-block-height
             }))
+        ;; Decrement active slot count if slot was active
+        (if (get is-active token)
+            (var-set active-slot-count
+                (if (> (var-get active-slot-count) u0)
+                    (- (var-get active-slot-count) u1)
+                    u0))
+            true)
         (ok true)
     )
 )
@@ -412,4 +461,24 @@
 ;; Return whether a slot is both active and not expired
 (define-read-only (is-slot-transferable-ro (token-id uint))
     (ok (is-slot-transferable token-id))
+)
+
+;; Search: get token-ids for a given subject
+(define-read-only (get-slots-by-subject (subject (string-ascii 64)))
+    (ok (default-to (list) (map-get? subject-index {subject: subject})))
+)
+
+;; Search: get token-ids for a given grade
+(define-read-only (get-slots-by-grade (grade uint))
+    (ok (default-to (list) (map-get? grade-index {grade: grade})))
+)
+
+;; Search: get token-ids for a given room
+(define-read-only (get-slots-by-room (room-id uint))
+    (ok (default-to (list) (map-get? room-index {room-id: room-id})))
+)
+
+;; Count of active (non-deactivated) slots
+(define-read-only (get-active-slot-count)
+    (ok (var-get active-slot-count))
 )
