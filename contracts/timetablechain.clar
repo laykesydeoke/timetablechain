@@ -292,6 +292,24 @@
     )
 )
 
+(define-public (reactivate-slot (token-id uint) (new-time-block uint))
+    (let (
+        (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
+    )
+        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
+        (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
+        (map-set tokens
+            {id: token-id}
+            (merge token {
+                is-active: true,
+                time-block: new-time-block,
+                updated-at: stacks-block-height
+            }))
+        (ok true)
+    )
+)
+
 (define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
