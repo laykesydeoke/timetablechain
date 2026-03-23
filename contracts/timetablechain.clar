@@ -368,6 +368,9 @@
                     (- (var-get active-slot-count) u1)
                     u0))
             true)
+        ;; Clear room schedule entry so the room+time-block is available again
+        (map-delete room-schedule
+            {room-id: (get room-id token), time-block: (get time-block token)})
         (ok true)
     )
 )
@@ -598,4 +601,9 @@
 ;; Count of active (non-deactivated) slots
 (define-read-only (get-active-slot-count)
     (ok (var-get active-slot-count))
+)
+
+;; Check if a room+time-block would conflict with an existing active slot
+(define-read-only (has-scheduling-conflict (room-id uint) (time-block uint))
+    (ok (has-room-conflict room-id time-block))
 )
