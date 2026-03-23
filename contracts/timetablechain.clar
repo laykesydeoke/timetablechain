@@ -324,6 +324,8 @@
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
         (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-a)) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-b)) ERR-INVALID-TOKEN)
         ;; Swap ownership in tokens map
         (map-set tokens {id: token-a}
             (merge slot-a { owner: partner, updated-at: stacks-block-height }))
