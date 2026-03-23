@@ -1198,3 +1198,14 @@
       (var-set crdval-cnt id) (ok id))))
 (define-read-only (get-crdval-entry (id uint))
   (map-get? crdval-log id))
+
+;; trsgen tracking
+(define-map trsgen-log uint { v: uint, at: uint })
+(define-data-var trsgen-cnt uint u0)
+(define-public (log-trsgen (val uint))
+  (begin (asserts! (> val u0) (err u6000))
+    (let ((id (+ (var-get trsgen-cnt) u1)))
+      (map-set trsgen-log id { v: val, at: stacks-block-height })
+      (var-set trsgen-cnt id) (ok id))))
+(define-read-only (get-trsgen-entry (id uint))
+  (map-get? trsgen-log id))
