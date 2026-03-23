@@ -462,3 +462,23 @@
 (define-read-only (is-slot-transferable-ro (token-id uint))
     (ok (is-slot-transferable token-id))
 )
+
+;; Search: get token-ids for a given subject
+(define-read-only (get-slots-by-subject (subject (string-ascii 64)))
+    (ok (default-to (list) (map-get? subject-index {subject: subject})))
+)
+
+;; Search: get token-ids for a given grade
+(define-read-only (get-slots-by-grade (grade uint))
+    (ok (default-to (list) (map-get? grade-index {grade: grade})))
+)
+
+;; Search: get token-ids for a given room
+(define-read-only (get-slots-by-room (room-id uint))
+    (ok (default-to (list) (map-get? room-index {room-id: room-id})))
+)
+
+;; Count of active (non-deactivated) slots
+(define-read-only (get-active-slot-count)
+    (ok (var-get active-slot-count))
+)
