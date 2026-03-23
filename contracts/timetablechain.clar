@@ -42,6 +42,18 @@
     {is-authorized: bool}
 )
 
+;; Transfer history
+(define-data-var transfer-counter uint u0)
+(define-map transfer-history
+    {id: uint}
+    {
+        token-id: uint,
+        from: principal,
+        to: principal,
+        transferred-at: uint
+    }
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
@@ -218,6 +230,7 @@
         (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active token) ERR-INVALID-TOKEN)
 
         ;; Check if recipient can receive more slots
         (asserts! (is-some (as-max-len? (append recipient-slots token-id) u100))
@@ -232,7 +245,7 @@
         ;; Add to recipient's slot list
         (map-set teacher-slots
             {id: recipient}
-            (unwrap-panic (as-max-len? (append recipient-slots token-id) u100)))
+            (unwrap! (as-max-len? (append recipient-slots token-id) u100) ERR-INVALID-INPUT))
 
         ;; Update token ownership
         (map-set tokens
@@ -241,6 +254,18 @@
                 owner: recipient,
                 updated-at: stacks-block-height
             }))
+
+        ;; Record transfer history
+        (let ((tid (+ (var-get transfer-counter) u1)))
+            (var-set transfer-counter tid)
+            (map-set transfer-history
+                {id: tid}
+                {
+                    token-id: token-id,
+                    from: tx-sender,
+                    to: recipient,
+                    transferred-at: stacks-block-height
+                }))
 
         (ok true)
     )
@@ -267,4 +292,12 @@
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
         (ok (var-set contract-paused (not (var-get contract-paused))))
     )
+)
+
+(define-read-only (get-transfer-record (id uint))
+    (map-get? transfer-history {id: id})
+)
+
+(define-read-only (get-transfer-count)
+    (ok (var-get transfer-counter))
 )
