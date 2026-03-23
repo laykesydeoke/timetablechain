@@ -310,6 +310,25 @@
     )
 )
 
+(define-public (swap-slots (token-a uint) (token-b uint) (partner principal))
+    (let (
+        (slot-a (unwrap! (map-get? tokens {id: token-a}) ERR-NOT-FOUND))
+        (slot-b (unwrap! (map-get? tokens {id: token-b}) ERR-NOT-FOUND))
+    )
+        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
+        (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
+        ;; Swap ownership
+        (map-set tokens {id: token-a}
+            (merge slot-a { owner: partner, updated-at: stacks-block-height }))
+        (map-set tokens {id: token-b}
+            (merge slot-b { owner: tx-sender, updated-at: stacks-block-height }))
+        (ok true)
+    )
+)
+
 (define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
