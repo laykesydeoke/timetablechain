@@ -98,21 +98,41 @@ function onConnected(address) {
     loadSlots();
 }
 
+function parseClarinetUint(hexResult) {
+    if (!hexResult || typeof hexResult !== 'string') { return 0; }
+    // Clarity ok-uint is prefixed with 0x0100...
+    var clean = hexResult.replace(/^0x/, '');
+    if (clean.startsWith('0100')) {
+        clean = clean.slice(4);
+    }
+    var parsed = parseInt(clean, 16);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+function encodeUint(id) {
+    if (typeof id !== 'number' || id < 0 || !isFinite(id)) {
+        throw new Error('Invalid id for encoding: ' + id);
+    }
+    return '0x' + id.toString(16).padStart(32, '0');
+}
+
 function loadSlotCount() {
     callReadOnly('get-last-token-id', [])
         .then(function (data) {
             if (data && data.okay && data.result) {
-                var count = parseInt(data.result.replace('0x01', ''), 16) || 0;
+                var count = parseClarinetUint(data.result);
                 if (count > 0) {
                     loadSlotsFromChain(count);
                 } else {
                     renderSampleSlots();
                 }
             } else {
+                showError('No slots found on chain. Showing sample data.');
                 renderSampleSlots();
             }
         })
-        .catch(function () {
+        .catch(function (err) {
+            showError('Failed to load slot count: ' + (err && err.message ? err.message : 'network error'));
             renderSampleSlots();
         });
 }
