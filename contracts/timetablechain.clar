@@ -344,6 +344,13 @@
                 is-active: false,
                 updated-at: stacks-block-height
             }))
+        ;; Decrement active slot count if slot was active
+        (if (get is-active token)
+            (var-set active-slot-count
+                (if (> (var-get active-slot-count) u0)
+                    (- (var-get active-slot-count) u1)
+                    u0))
+            true)
         (ok true)
     )
 )
