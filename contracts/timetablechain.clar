@@ -1022,3 +1022,14 @@
       (var-set insld-cnt id) (ok id))))
 (define-read-only (get-insld-entry (id uint))
   (map-get? insld-log id))
+
+;; prdbnd tracking
+(define-map prdbnd-log uint { v: uint, at: uint })
+(define-data-var prdbnd-cnt uint u0)
+(define-public (log-prdbnd (val uint))
+  (begin (asserts! (> val u0) (err u4400))
+    (let ((id (+ (var-get prdbnd-cnt) u1)))
+      (map-set prdbnd-log id { v: val, at: stacks-block-height })
+      (var-set prdbnd-cnt id) (ok id))))
+(define-read-only (get-prdbnd-entry (id uint))
+  (map-get? prdbnd-log id))

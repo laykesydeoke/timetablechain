@@ -1,0 +1,1 @@
+import{describe,it,expect}from"vitest";import{simnet}from"./setup";describe("prdbnd 13",()=>{it("c13",()=>{const r=simnet.callReadOnlyFn("timetablechain","get-last-token-id",[],simnet.deployer);expect(r.result).toBeDefined();});});
