@@ -3409,3 +3409,7 @@
   (match (map-get? timezone-svc-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-timezone-svc-owner (id uint))
+  (match (map-get? timezone-svc-registry id)
+    entry (ok (get owner entry))
+    (err u1521)))
