@@ -97,6 +97,15 @@
         token-data (> stacks-block-height (get time-block token-data))
         true))
 
+;; Check if a slot is transferable (active and not expired)
+(define-private (is-slot-transferable (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data (and
+            (get is-active token-data)
+            (not (> stacks-block-height (get time-block token-data))))
+        false)
+)
+
 ;; Check if caller is authorized to create slots
 (define-private (can-create-slot)
     (or
@@ -236,6 +245,7 @@
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active token) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-id)) ERR-INVALID-TOKEN)
 
         ;; Check if recipient can receive more slots
         (asserts! (is-some (as-max-len? (append recipient-slots token-id) u100))
@@ -323,6 +333,8 @@
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
         (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-a)) ERR-INVALID-TOKEN)
+        (asserts! (not (is-slot-expired token-b)) ERR-INVALID-TOKEN)
         ;; Swap ownership in tokens map
         (map-set tokens {id: token-a}
             (merge slot-a { owner: partner, updated-at: stacks-block-height }))
@@ -391,4 +403,9 @@
         (list)
         (map-get? teacher-slots {id: teacher})
     ))
+)
+
+;; Return whether a slot is both active and not expired
+(define-read-only (is-slot-transferable-ro (token-id uint))
+    (ok (is-slot-transferable token-id))
 )
