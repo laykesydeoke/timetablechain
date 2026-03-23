@@ -368,6 +368,28 @@
                     transferred-at: stacks-block-height
                 }))
 
+        ;; Update sender stats (transferred out, active-count -1)
+        (let ((sender-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge sender-stats {
+                    total-transferred-out: (+ (get total-transferred-out sender-stats) u1),
+                    active-count: (if (> (get active-count sender-stats) u0)
+                        (- (get active-count sender-stats) u1)
+                        u0)
+                })))
+
+        ;; Update receiver stats (transferred in, active-count +1)
+        (let ((recv-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: recipient}))))
+            (map-set teacher-stats {teacher: recipient}
+                (merge recv-stats {
+                    total-transferred-in: (+ (get total-transferred-in recv-stats) u1),
+                    active-count: (+ (get active-count recv-stats) u1)
+                })))
+
         (ok true)
     )
 )
