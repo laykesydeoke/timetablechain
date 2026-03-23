@@ -77,6 +77,12 @@
 ;; Count of active (non-deactivated) slots
 (define-data-var active-slot-count uint u0)
 
+;; Room schedule: prevent double-booking (room + time-block -> token-id)
+(define-map room-schedule
+    {room-id: uint, time-block: uint}
+    {token-id: uint}
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
