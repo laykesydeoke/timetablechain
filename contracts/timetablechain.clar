@@ -248,6 +248,29 @@
             {id: tx-sender}
             (unwrap! (as-max-len? (append current-slots new-id) u100) ERR-INVALID-INPUT))
 
+        ;; Update subject index
+        (map-set subject-index
+            {subject: subject}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? subject-index {subject: subject})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Update grade index
+        (map-set grade-index
+            {grade: grade}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? grade-index {grade: grade})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Update room index
+        (map-set room-index
+            {room-id: room-id}
+            (unwrap! (as-max-len?
+                (append (default-to (list) (map-get? room-index {room-id: room-id})) new-id)
+                u200) ERR-INVALID-INPUT))
+
+        ;; Increment active slot count
+        (var-set active-slot-count (+ (var-get active-slot-count) u1))
         (var-set last-token-id new-id)
         (ok new-id)
     )
