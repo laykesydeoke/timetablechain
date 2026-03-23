@@ -204,7 +204,7 @@
 
         ;; Input validation
         (asserts! (can-create-slot) ERR-NOT-AUTHORIZED)
-        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
         (asserts! (is-valid-time-block time-block) ERR-INVALID-INPUT)
         (asserts! (is-valid-subject subject) ERR-INVALID-INPUT)
         (asserts! (is-valid-grade grade) ERR-INVALID-GRADE)
@@ -244,7 +244,7 @@
         )
 
         ;; Input validation
-        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
         (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
@@ -331,7 +331,7 @@
         (sender-slots (default-to (list) (map-get? teacher-slots {id: tx-sender})))
         (partner-slots (default-to (list) (map-get? teacher-slots {id: partner})))
     )
-        (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
         (asserts! (not (is-eq tx-sender partner)) ERR-INVALID-RECIPIENT)
         (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
         (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
