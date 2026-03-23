@@ -247,7 +247,7 @@
         (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
         (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
         (asserts! (is-valid-recipient recipient) ERR-INVALID-RECIPIENT)
-        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (get is-active token) ERR-INVALID-TOKEN)
         (asserts! (not (is-slot-expired token-id)) ERR-INVALID-TOKEN)
 
@@ -295,7 +295,7 @@
     (let (
         (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
     )
-        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (map-set tokens
             {id: token-id}
             (merge token {
@@ -310,7 +310,7 @@
     (let (
         (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
     )
-        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
         (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
         (map-set tokens
@@ -333,8 +333,8 @@
     )
         (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
         (asserts! (not (is-eq tx-sender partner)) ERR-INVALID-RECIPIENT)
-        (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-AUTHORIZED)
-        (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender (get owner slot-a)) ERR-NOT-SLOT-OWNER)
+        (asserts! (is-eq partner (get owner slot-b)) ERR-NOT-SLOT-OWNER)
         (asserts! (get is-active slot-a) ERR-INVALID-TOKEN)
         (asserts! (get is-active slot-b) ERR-INVALID-TOKEN)
         (asserts! (not (is-slot-expired token-a)) ERR-INVALID-TOKEN)
