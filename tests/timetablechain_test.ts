@@ -1031,6 +1031,244 @@ describe("timetablechain", () => {
     });
   });
 
+  describe("teacher statistics", () => {
+    it("tracks total-created and active-count on creation", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(8), Cl.uint(101)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Science"), Cl.uint(9), Cl.uint(102)],
+        deployer
+      );
+
+      const stats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(2),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(2),
+        })
+      );
+    });
+
+    it("updates stats on transfer for both parties", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("English"), Cl.uint(7), Cl.uint(201)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "transfer",
+        [Cl.uint(1), Cl.principal(wallet1)],
+        deployer
+      );
+
+      const senderStats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(senderStats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(1),
+          "total-transferred-out": Cl.uint(1),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(0),
+        })
+      );
+
+      const receiverStats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(receiverStats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(0),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(1),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(1),
+        })
+      );
+    });
+
+    it("decrements active-count on deactivation", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("History"), Cl.uint(6), Cl.uint(301)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Geography"), Cl.uint(5), Cl.uint(302)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      const stats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(2),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(1),
+        })
+      );
+    });
+
+    it("tracks swap count for both teachers", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(4), Cl.uint(401)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Music"), Cl.uint(3), Cl.uint(402)],
+        wallet1
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
+        deployer
+      );
+
+      const deployerStats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(deployerStats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(1),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(1),
+          "active-count": Cl.uint(1),
+        })
+      );
+
+      const wallet1Stats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(wallet1Stats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(1),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(1),
+          "active-count": Cl.uint(1),
+        })
+      );
+    });
+
+    it("returns default zero stats for unknown teacher", () => {
+      const stats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(wallet2)],
+        deployer
+      );
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(0),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(0),
+        })
+      );
+    });
+
+    it("restores active-count on reactivation", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("PE"), Cl.uint(3), Cl.uint(501)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "reactivate-slot",
+        [Cl.uint(1), Cl.uint(500)],
+        deployer
+      );
+
+      const stats = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-stats",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-created": Cl.uint(1),
+          "total-transferred-out": Cl.uint(0),
+          "total-transferred-in": Cl.uint(0),
+          "total-swapped": Cl.uint(0),
+          "active-count": Cl.uint(1),
+        })
+      );
+    });
+  });
+
   describe("scheduling conflicts", () => {
     it("blocks creating slot in same room+time-block", () => {
       simnet.callPublicFn(

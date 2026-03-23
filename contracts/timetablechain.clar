@@ -83,6 +83,18 @@
     {token-id: uint}
 )
 
+;; Teacher statistics tracking
+(define-map teacher-stats
+    {teacher: principal}
+    {
+        total-created: uint,
+        total-transferred-out: uint,
+        total-transferred-in: uint,
+        total-swapped: uint,
+        active-count: uint
+    }
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
@@ -289,6 +301,17 @@
         ;; Increment active slot count
         (var-set active-slot-count (+ (var-get active-slot-count) u1))
         (var-set last-token-id new-id)
+
+        ;; Update teacher stats
+        (let ((stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge stats {
+                    total-created: (+ (get total-created stats) u1),
+                    active-count: (+ (get active-count stats) u1)
+                })))
+
         (ok new-id)
     )
 )
@@ -345,6 +368,28 @@
                     transferred-at: stacks-block-height
                 }))
 
+        ;; Update sender stats (transferred out, active-count -1)
+        (let ((sender-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge sender-stats {
+                    total-transferred-out: (+ (get total-transferred-out sender-stats) u1),
+                    active-count: (if (> (get active-count sender-stats) u0)
+                        (- (get active-count sender-stats) u1)
+                        u0)
+                })))
+
+        ;; Update receiver stats (transferred in, active-count +1)
+        (let ((recv-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: recipient}))))
+            (map-set teacher-stats {teacher: recipient}
+                (merge recv-stats {
+                    total-transferred-in: (+ (get total-transferred-in recv-stats) u1),
+                    active-count: (+ (get active-count recv-stats) u1)
+                })))
+
         (ok true)
     )
 )
@@ -363,10 +408,21 @@
             }))
         ;; Decrement active slot count if slot was active
         (if (get is-active token)
-            (var-set active-slot-count
-                (if (> (var-get active-slot-count) u0)
-                    (- (var-get active-slot-count) u1)
-                    u0))
+            (begin
+                (var-set active-slot-count
+                    (if (> (var-get active-slot-count) u0)
+                        (- (var-get active-slot-count) u1)
+                        u0))
+                ;; Decrement teacher active-count
+                (let ((stats (default-to
+                        {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                        (map-get? teacher-stats {teacher: tx-sender}))))
+                    (map-set teacher-stats {teacher: tx-sender}
+                        (merge stats {
+                            active-count: (if (> (get active-count stats) u0)
+                                (- (get active-count stats) u1)
+                                u0)
+                        }))))
             true)
         ;; Clear room schedule entry so the room+time-block is available again
         (map-delete room-schedule
@@ -394,6 +450,17 @@
         (map-set room-schedule
             {room-id: (get room-id token), time-block: new-time-block}
             {token-id: token-id})
+
+        ;; Increment active-count back on reactivation
+        (var-set active-slot-count (+ (var-get active-slot-count) u1))
+        (let ((stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge stats {
+                    active-count: (+ (get active-count stats) u1)
+                })))
+
         (ok true)
     )
 )
@@ -453,6 +520,25 @@
                     to: tx-sender,
                     transferred-at: stacks-block-height
                 }))
+
+        ;; Update swap stats for caller
+        (let ((caller-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: tx-sender}))))
+            (map-set teacher-stats {teacher: tx-sender}
+                (merge caller-stats {
+                    total-swapped: (+ (get total-swapped caller-stats) u1)
+                })))
+
+        ;; Update swap stats for partner
+        (let ((partner-stats (default-to
+                {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                (map-get? teacher-stats {teacher: partner}))))
+            (map-set teacher-stats {teacher: partner}
+                (merge partner-stats {
+                    total-swapped: (+ (get total-swapped partner-stats) u1)
+                })))
+
         (ok true)
     )
 )
@@ -611,4 +697,18 @@
 ;; Check if a room+time-block would conflict with an existing active slot
 (define-read-only (has-scheduling-conflict (room-id uint) (time-block uint))
     (ok (has-room-conflict room-id time-block))
+)
+
+;; Get teacher statistics
+(define-read-only (get-teacher-stats (teacher principal))
+    (ok (default-to
+        {
+            total-created: u0,
+            total-transferred-out: u0,
+            total-transferred-in: u0,
+            total-swapped: u0,
+            active-count: u0
+        }
+        (map-get? teacher-stats {teacher: teacher})
+    ))
 )
