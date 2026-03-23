@@ -11,6 +11,10 @@
 (define-constant ERR-INVALID-ROOM (err u403))
 (define-constant ERR-INVALID-RECIPIENT (err u405))
 (define-constant ERR-INVALID-TOKEN (err u406))
+;; Distinct error codes for specific failure modes
+(define-constant ERR-CONTRACT-PAUSED (err u410))
+(define-constant ERR-NOT-SLOT-OWNER (err u411))
+(define-constant ERR-SLOT-EXPIRED (err u412))
 
 ;; Data Variables
 (define-data-var last-token-id uint u0)
