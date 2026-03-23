@@ -1132,3 +1132,14 @@
       (var-set enrcap-cnt id) (ok id))))
 (define-read-only (get-enrcap-entry (id uint))
   (map-get? enrcap-log id))
+
+;; wltpri tracking
+(define-map wltpri-log uint { v: uint, at: uint })
+(define-data-var wltpri-cnt uint u0)
+(define-public (log-wltpri (val uint))
+  (begin (asserts! (> val u0) (err u5400))
+    (let ((id (+ (var-get wltpri-cnt) u1)))
+      (map-set wltpri-log id { v: val, at: stacks-block-height })
+      (var-set wltpri-cnt id) (ok id))))
+(define-read-only (get-wltpri-entry (id uint))
+  (map-get? wltpri-log id))
