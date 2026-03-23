@@ -1077,3 +1077,14 @@
       (var-set submgr-cnt id) (ok id))))
 (define-read-only (get-submgr-entry (id uint))
   (map-get? submgr-log id))
+
+;; attsyn tracking
+(define-map attsyn-log uint { v: uint, at: uint })
+(define-data-var attsyn-cnt uint u0)
+(define-public (log-attsyn (val uint))
+  (begin (asserts! (> val u0) (err u4900))
+    (let ((id (+ (var-get attsyn-cnt) u1)))
+      (map-set attsyn-log id { v: val, at: stacks-block-height })
+      (var-set attsyn-cnt id) (ok id))))
+(define-read-only (get-attsyn-entry (id uint))
+  (map-get? attsyn-log id))
