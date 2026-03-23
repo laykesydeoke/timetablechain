@@ -201,7 +201,7 @@ describe("timetablechain", () => {
         [Cl.uint(1), Cl.principal(wallet2)],
         wallet1
       );
-      expect(transfer.result).toBeErr(Cl.uint(401));
+      expect(transfer.result).toBeErr(Cl.uint(411));
     });
 
     it("blocks self-transfer", () => {
@@ -262,7 +262,7 @@ describe("timetablechain", () => {
         [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(5), Cl.uint(101)],
         deployer
       );
-      expect(result.result).toBeErr(Cl.uint(401));
+      expect(result.result).toBeErr(Cl.uint(410));
     });
 
     it("authorizes and revokes teachers", () => {
@@ -330,7 +330,7 @@ describe("timetablechain", () => {
         [Cl.uint(1)],
         wallet1
       );
-      expect(result.result).toBeErr(Cl.uint(401));
+      expect(result.result).toBeErr(Cl.uint(411));
     });
   });
 
@@ -473,7 +473,7 @@ describe("timetablechain", () => {
         [Cl.uint(1), Cl.principal(wallet1)],
         deployer
       );
-      expect(transfer.result).toBeErr(Cl.uint(406));
+      expect(transfer.result).toBeErr(Cl.uint(412));
     });
 
     it("blocks swap when slot-a is expired", () => {
@@ -506,7 +506,7 @@ describe("timetablechain", () => {
         [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
         deployer
       );
-      expect(result.result).toBeErr(Cl.uint(406));
+      expect(result.result).toBeErr(Cl.uint(412));
     });
 
     it("is-slot-expired-ro returns true for expired slot", () => {
@@ -575,7 +575,7 @@ describe("timetablechain", () => {
         [Cl.uint(1), Cl.uint(500)],
         wallet1
       );
-      expect(result.result).toBeErr(Cl.uint(401));
+      expect(result.result).toBeErr(Cl.uint(411));
     });
 
     it("blocks reactivation of already active slot", () => {
@@ -678,7 +678,7 @@ describe("timetablechain", () => {
         [Cl.uint(1), Cl.uint(2), Cl.principal(deployer)],
         wallet1
       );
-      expect(result.result).toBeErr(Cl.uint(401));
+      expect(result.result).toBeErr(Cl.uint(411));
     });
 
     it("blocks self-swap", () => {
