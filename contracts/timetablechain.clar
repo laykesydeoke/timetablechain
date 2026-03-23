@@ -3442,3 +3442,7 @@
   (match (map-get? locale-fmt-registry id)
     entry (get active entry)
     false))
+(define-read-only (get-locale-fmt-owner (id uint))
+  (match (map-get? locale-fmt-registry id)
+    entry (ok (get owner entry))
+    (err u1531)))
