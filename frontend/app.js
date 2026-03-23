@@ -179,6 +179,32 @@ function loadSlotsFromChain(count) {
     }
 }
 
+function showError(msg) {
+    var errEl = document.getElementById('errorBanner');
+    if (!errEl) {
+        errEl = document.createElement('div');
+        errEl.id = 'errorBanner';
+        errEl.style.cssText = 'background:#fee;color:#c00;padding:8px 16px;border-radius:4px;margin:8px 0;font-size:0.9em;';
+        var grid = document.getElementById('slotsGrid');
+        if (grid && grid.parentNode) {
+            grid.parentNode.insertBefore(errEl, grid);
+        }
+    }
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    setTimeout(function () { errEl.style.display = 'none'; }, 5000);
+}
+
+function getSlotStatus(slotData) {
+    if (!slotData['is-active']) { return 'inactive'; }
+    var timeBlock = slotData['time-block'];
+    if (timeBlock && typeof timeBlock === 'number') {
+        // approximate: if time-block is in the past relative to now
+        return 'active';
+    }
+    return 'active';
+}
+
 function appendSlotCard(grid, id, slotData) {
     var card = document.createElement('div');
     card.className = 'slot-card';
@@ -205,6 +231,12 @@ function appendSlotCard(grid, id, slotData) {
         room.textContent = 'Room ' + slotData['room-id'];
         card.appendChild(room);
     }
+
+    var status = document.createElement('span');
+    var isActive = slotData['is-active'];
+    status.className = 'slot-status slot-status--' + (isActive ? 'active' : 'inactive');
+    status.textContent = isActive ? 'Active' : 'Inactive';
+    card.appendChild(status);
 
     grid.appendChild(card);
 }
