@@ -624,3 +624,17 @@
 (define-read-only (has-scheduling-conflict (room-id uint) (time-block uint))
     (ok (has-room-conflict room-id time-block))
 )
+
+;; Get teacher statistics
+(define-read-only (get-teacher-stats (teacher principal))
+    (ok (default-to
+        {
+            total-created: u0,
+            total-transferred-out: u0,
+            total-transferred-in: u0,
+            total-swapped: u0,
+            active-count: u0
+        }
+        (map-get? teacher-stats {teacher: teacher})
+    ))
+)
