@@ -604,5 +604,108 @@ describe("timetablechain", () => {
       );
       expect(result.result).toBeErr(Cl.uint(401));
     });
+
+    it("updates teacher slot lists after swap", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Math"), Cl.uint(8), Cl.uint(101)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Physics"), Cl.uint(9), Cl.uint(202)],
+        wallet1
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
+        deployer
+      );
+
+      // Deployer should now own slot 2, not slot 1
+      const deployerSlots = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-slot-list",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(deployerSlots.result).toBeOk(Cl.list([Cl.uint(2)]));
+
+      // Wallet1 should now own slot 1, not slot 2
+      const wallet1Slots = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-teacher-slot-list",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(wallet1Slots.result).toBeOk(Cl.list([Cl.uint(1)]));
+    });
+
+    it("records swap operations in transfer history", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Chemistry"), Cl.uint(10), Cl.uint(110)],
+        deployer
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Biology"), Cl.uint(11), Cl.uint(220)],
+        wallet1
+      );
+
+      simnet.callPublicFn(
+        "timetablechain",
+        "swap-slots",
+        [Cl.uint(1), Cl.uint(2), Cl.principal(wallet1)],
+        deployer
+      );
+
+      // Two history records should be created (one per slot)
+      const count = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-transfer-count",
+        [],
+        deployer
+      );
+      expect(count.result).toBeOk(Cl.uint(2));
+
+      const rec1 = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-transfer-record",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(rec1.result).not.toBeNone();
+
+      const rec2 = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-transfer-record",
+        [Cl.uint(2)],
+        deployer
+      );
+      expect(rec2.result).not.toBeNone();
+    });
   });
 });
