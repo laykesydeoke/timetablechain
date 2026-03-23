@@ -926,4 +926,108 @@ describe("timetablechain", () => {
       expect(result.result).toBeOk(Cl.list([]));
     });
   });
+
+  describe("batch operations", () => {
+    it("batch-create-slots creates multiple slots", () => {
+      const slots = Cl.list([
+        Cl.tuple({
+          "time-block": Cl.uint(100),
+          subject: Cl.stringAscii("Math"),
+          grade: Cl.uint(8),
+          "room-id": Cl.uint(101)
+        }),
+        Cl.tuple({
+          "time-block": Cl.uint(200),
+          subject: Cl.stringAscii("Science"),
+          grade: Cl.uint(9),
+          "room-id": Cl.uint(102)
+        }),
+        Cl.tuple({
+          "time-block": Cl.uint(300),
+          subject: Cl.stringAscii("English"),
+          grade: Cl.uint(10),
+          "room-id": Cl.uint(103)
+        })
+      ]);
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "batch-create-slots",
+        [slots],
+        deployer
+      );
+      expect(result.result).toBeOk(
+        Cl.list([Cl.uint(1), Cl.uint(2), Cl.uint(3)])
+      );
+
+      const lastId = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-last-token-id",
+        [],
+        deployer
+      );
+      expect(lastId.result).toBeOk(Cl.uint(3));
+    });
+
+    it("batch-create-slots blocks empty batch", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "batch-create-slots",
+        [Cl.list([])],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(400));
+    });
+
+    it("batch-deactivate-slots deactivates owned slots", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Art"), Cl.uint(5), Cl.uint(401)],
+        deployer
+      );
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(200), Cl.stringAscii("Music"), Cl.uint(6), Cl.uint(402)],
+        deployer
+      );
+
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "batch-deactivate-slots",
+        [Cl.list([Cl.uint(1), Cl.uint(2)])],
+        deployer
+      );
+      expect(result.result).toBeOk(Cl.list([Cl.bool(true), Cl.bool(true)]));
+
+      const slot1 = simnet.callReadOnlyFn(
+        "timetablechain",
+        "get-slot-details",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(slot1.result).toBeOk(
+        expect.objectContaining({ type: expect.any(Number) })
+      );
+    });
+
+    it("batch-deactivate-slots skips non-owned slots", () => {
+      simnet.callPublicFn(
+        "timetablechain",
+        "create-teaching-slot",
+        [Cl.uint(100), Cl.stringAscii("Drama"), Cl.uint(7), Cl.uint(501)],
+        deployer
+      );
+
+      // wallet1 tries to deactivate deployer's slot - should return false
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "batch-deactivate-slots",
+        [Cl.list([Cl.uint(1)])],
+        wallet1
+      );
+      expect(result.result).toBeOk(Cl.list([Cl.bool(false)]));
+    });
+  });
 });

@@ -432,6 +432,106 @@
     )
 )
 
+;; Batch create up to 10 slots in one transaction
+(define-public (batch-create-slots
+    (slots (list 10 {
+        time-block: uint,
+        subject: (string-ascii 64),
+        grade: uint,
+        room-id: uint
+    })))
+    (begin
+        (asserts! (can-create-slot) ERR-NOT-AUTHORIZED)
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
+        (asserts! (> (len slots) u0) ERR-INVALID-INPUT)
+        (ok (map create-slot-from-tuple slots))
+    )
+)
+
+(define-private (create-slot-from-tuple
+    (slot {
+        time-block: uint,
+        subject: (string-ascii 64),
+        grade: uint,
+        room-id: uint
+    }))
+    (let (
+        (new-id (+ (var-get last-token-id) u1))
+        (current-slots (default-to (list) (map-get? teacher-slots {id: tx-sender})))
+        (tb (get time-block slot))
+        (subj (get subject slot))
+        (gr (get grade slot))
+        (rm (get room-id slot))
+    )
+        (if (and
+                (is-valid-time-block tb)
+                (is-valid-subject subj)
+                (is-valid-grade gr)
+                (is-valid-room rm)
+                (is-some (as-max-len? (append current-slots new-id) u100)))
+            (begin
+                (map-set tokens {id: new-id}
+                    {
+                        owner: tx-sender,
+                        time-block: tb,
+                        subject: subj,
+                        grade: gr,
+                        room-id: rm,
+                        is-active: true,
+                        created-at: stacks-block-height,
+                        updated-at: stacks-block-height
+                    })
+                (map-set teacher-slots {id: tx-sender}
+                    (unwrap-panic (as-max-len? (append current-slots new-id) u100)))
+                (map-set subject-index {subject: subj}
+                    (unwrap-panic (as-max-len?
+                        (append (default-to (list) (map-get? subject-index {subject: subj})) new-id)
+                        u200)))
+                (map-set grade-index {grade: gr}
+                    (unwrap-panic (as-max-len?
+                        (append (default-to (list) (map-get? grade-index {grade: gr})) new-id)
+                        u200)))
+                (map-set room-index {room-id: rm}
+                    (unwrap-panic (as-max-len?
+                        (append (default-to (list) (map-get? room-index {room-id: rm})) new-id)
+                        u200)))
+                (var-set active-slot-count (+ (var-get active-slot-count) u1))
+                (var-set last-token-id new-id)
+                new-id)
+            u0)
+    )
+)
+
+;; Batch deactivate up to 10 owned slots
+(define-public (batch-deactivate-slots (token-ids (list 10 uint)))
+    (begin
+        (asserts! (not (var-get contract-paused)) ERR-CONTRACT-PAUSED)
+        (asserts! (> (len token-ids) u0) ERR-INVALID-INPUT)
+        (ok (map deactivate-slot-if-owner token-ids))
+    )
+)
+
+(define-private (deactivate-slot-if-owner (token-id uint))
+    (match (map-get? tokens {id: token-id})
+        token-data
+            (if (is-eq tx-sender (get owner token-data))
+                (begin
+                    (map-set tokens {id: token-id}
+                        (merge token-data {
+                            is-active: false,
+                            updated-at: stacks-block-height
+                        }))
+                    (if (get is-active token-data)
+                        (var-set active-slot-count
+                            (if (> (var-get active-slot-count) u0)
+                                (- (var-get active-slot-count) u1)
+                                u0))
+                        true)
+                    true)
+                false)
+        false)
+)
+
 (define-public (toggle-pause)
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
