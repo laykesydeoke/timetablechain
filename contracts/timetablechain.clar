@@ -1121,3 +1121,14 @@
       (var-set prqchn-cnt id) (ok id))))
 (define-read-only (get-prqchn-entry (id uint))
   (map-get? prqchn-log id))
+
+;; enrcap tracking
+(define-map enrcap-log uint { v: uint, at: uint })
+(define-data-var enrcap-cnt uint u0)
+(define-public (log-enrcap (val uint))
+  (begin (asserts! (> val u0) (err u5300))
+    (let ((id (+ (var-get enrcap-cnt) u1)))
+      (map-set enrcap-log id { v: val, at: stacks-block-height })
+      (var-set enrcap-cnt id) (ok id))))
+(define-read-only (get-enrcap-entry (id uint))
+  (map-get? enrcap-log id))
