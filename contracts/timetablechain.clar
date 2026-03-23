@@ -1110,3 +1110,14 @@
       (var-set curmap-cnt id) (ok id))))
 (define-read-only (get-curmap-entry (id uint))
   (map-get? curmap-log id))
+
+;; prqchn tracking
+(define-map prqchn-log uint { v: uint, at: uint })
+(define-data-var prqchn-cnt uint u0)
+(define-public (log-prqchn (val uint))
+  (begin (asserts! (> val u0) (err u5200))
+    (let ((id (+ (var-get prqchn-cnt) u1)))
+      (map-set prqchn-log id { v: val, at: stacks-block-height })
+      (var-set prqchn-cnt id) (ok id))))
+(define-read-only (get-prqchn-entry (id uint))
+  (map-get? prqchn-log id))
