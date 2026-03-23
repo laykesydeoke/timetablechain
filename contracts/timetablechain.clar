@@ -1154,3 +1154,14 @@
       (var-set fdbklp-cnt id) (ok id))))
 (define-read-only (get-fdbklp-entry (id uint))
   (map-get? fdbklp-log id))
+
+;; rstrk tracking
+(define-map rstrk-log uint { v: uint, at: uint })
+(define-data-var rstrk-cnt uint u0)
+(define-public (log-rstrk (val uint))
+  (begin (asserts! (> val u0) (err u5600))
+    (let ((id (+ (var-get rstrk-cnt) u1)))
+      (map-set rstrk-log id { v: val, at: stacks-block-height })
+      (var-set rstrk-cnt id) (ok id))))
+(define-read-only (get-rstrk-entry (id uint))
+  (map-get? rstrk-log id))
