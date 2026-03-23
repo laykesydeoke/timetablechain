@@ -42,6 +42,18 @@
     {is-authorized: bool}
 )
 
+;; Transfer history
+(define-data-var transfer-counter uint u0)
+(define-map transfer-history
+    {id: uint}
+    {
+        token-id: uint,
+        from: principal,
+        to: principal,
+        transferred-at: uint
+    }
+)
+
 ;; Validation Functions
 (define-private (is-valid-grade (grade uint))
     (and (>= grade u1) (<= grade u12))
