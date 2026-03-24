@@ -1,0 +1,67 @@
+;; Slot Marketplace: Payment-enabled marketplace for buying/selling teaching slots with STX
+;; Clarity 3 - Works alongside timetablechain contract
+
+;; Constants
+(define-constant CONTRACT-OWNER tx-sender)
+
+;; Error codes
+(define-constant ERR-NOT-AUTHORIZED (err u401))
+(define-constant ERR-LISTING-NOT-FOUND (err u404))
+(define-constant ERR-INSUFFICIENT-FUNDS (err u402))
+(define-constant ERR-LISTING-EXPIRED (err u410))
+(define-constant ERR-SELF-PURCHASE (err u405))
+(define-constant ERR-NOT-ACTIVE (err u406))
+(define-constant ERR-INVALID-PRICE (err u400))
+(define-constant ERR-INVALID-LISTING-ID (err u407))
+(define-constant ERR-ALREADY-LISTED (err u409))
+
+;; Data Variables
+(define-data-var listing-counter uint u0)
+
+;; Marketplace fee in basis points (250 = 2.5%)
+(define-data-var marketplace-fee uint u250)
+
+;; Maximum listing duration in blocks (~30 days at 1 block/10 min)
+(define-constant MAX-LISTING-DURATION u4320)
+
+;; Listings map: id -> listing details
+(define-map listings
+    {id: uint}
+    {
+        seller: principal,
+        token-id: uint,
+        price: uint,
+        is-active: bool,
+        created-at: uint,
+        expires-at: uint
+    }
+)
+
+;; Track which token-ids are currently listed (to prevent double-listing)
+(define-map listed-tokens
+    {token-id: uint}
+    {listing-id: uint}
+)
+
+;; Validation helpers
+(define-private (is-valid-listing-id (id uint))
+    (and (> id u0) (<= id (var-get listing-counter)))
+)
+
+(define-private (is-contract-owner)
+    (is-eq tx-sender CONTRACT-OWNER)
+)
+
+(define-private (is-valid-price (price uint))
+    (> price u0)
+)
+
+(define-private (is-valid-fee (fee uint))
+    ;; Fee must be between 0 and 1000 basis points (0% to 10%)
+    (<= fee u1000)
+)
+
+;; Calculate fee amount from a price
+(define-private (calculate-fee (price uint))
+    (/ (* price (var-get marketplace-fee)) u10000)
+)
