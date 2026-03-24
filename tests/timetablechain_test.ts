@@ -1,10 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { Cl } from "@stacks/transactions";
-import { simnet } from "./setup";
+import { createSimnet } from "./setup";
 
-const deployer = simnet.deployer;
-const wallet1 = simnet.getAccounts().get("wallet_1")!;
-const wallet2 = simnet.getAccounts().get("wallet_2")!;
+let simnet: Awaited<ReturnType<typeof createSimnet>>;
+let deployer: string;
+let wallet1: string;
+let wallet2: string;
+
+beforeEach(async () => {
+  simnet = await createSimnet();
+  deployer = simnet.deployer;
+  wallet1 = simnet.getAccounts().get("wallet_1")!;
+  wallet2 = simnet.getAccounts().get("wallet_2")!;
+});
 
 describe("timetablechain", () => {
   describe("slot creation", () => {
@@ -32,7 +40,7 @@ describe("timetablechain", () => {
         [Cl.uint(200), Cl.stringAscii("Physics"), Cl.uint(11), Cl.uint(205)],
         wallet1
       );
-      expect(result.result).toBeOk(Cl.uint(2));
+      expect(result.result).toBeOk(Cl.uint(1));
     });
 
     it("blocks unauthorized user from creating slots", () => {
@@ -295,6 +303,46 @@ describe("timetablechain", () => {
         deployer
       );
       expect(revoked.result).toBeOk(Cl.bool(false));
+    });
+
+    it("blocks authorizing contract owner as teacher", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "authorize-teacher",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(400));
+    });
+
+    it("blocks revoking contract owner as teacher", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "revoke-teacher",
+        [Cl.principal(deployer)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(400));
+    });
+
+    it("blocks deactivation of invalid token-id", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "deactivate-slot",
+        [Cl.uint(0)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(406));
+    });
+
+    it("blocks reactivation of invalid token-id", () => {
+      const result = simnet.callPublicFn(
+        "timetablechain",
+        "reactivate-slot",
+        [Cl.uint(0), Cl.uint(500)],
+        deployer
+      );
+      expect(result.result).toBeErr(Cl.uint(406));
     });
   });
 

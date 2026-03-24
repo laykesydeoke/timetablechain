@@ -173,6 +173,7 @@
 (define-public (authorize-teacher (teacher principal))
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq teacher CONTRACT-OWNER)) ERR-INVALID-INPUT)
         (ok (map-set authorized-teachers
             {teacher: teacher}
             {is-authorized: true}
@@ -184,6 +185,7 @@
 (define-public (revoke-teacher (teacher principal))
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq teacher CONTRACT-OWNER)) ERR-INVALID-INPUT)
         (ok (map-set authorized-teachers
             {teacher: teacher}
             {is-authorized: false}
@@ -396,45 +398,50 @@
 
 ;; Deactivate a slot
 (define-public (deactivate-slot (token-id uint))
-    (let (
-        (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
-    )
-        (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
-        (map-set tokens
-            {id: token-id}
-            (merge token {
-                is-active: false,
-                updated-at: stacks-block-height
-            }))
-        ;; Decrement active slot count if slot was active
-        (if (get is-active token)
-            (begin
-                (var-set active-slot-count
-                    (if (> (var-get active-slot-count) u0)
-                        (- (var-get active-slot-count) u1)
-                        u0))
-                ;; Decrement teacher active-count
-                (let ((stats (default-to
-                        {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
-                        (map-get? teacher-stats {teacher: tx-sender}))))
-                    (map-set teacher-stats {teacher: tx-sender}
-                        (merge stats {
-                            active-count: (if (> (get active-count stats) u0)
-                                (- (get active-count stats) u1)
-                                u0)
-                        }))))
-            true)
-        ;; Clear room schedule entry so the room+time-block is available again
-        (map-delete room-schedule
-            {room-id: (get room-id token), time-block: (get time-block token)})
-        (ok true)
+    (begin
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        (let (
+            (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
+        )
+            (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
+            (map-set tokens
+                {id: token-id}
+                (merge token {
+                    is-active: false,
+                    updated-at: stacks-block-height
+                }))
+            ;; Decrement active slot count if slot was active
+            (if (get is-active token)
+                (begin
+                    (var-set active-slot-count
+                        (if (> (var-get active-slot-count) u0)
+                            (- (var-get active-slot-count) u1)
+                            u0))
+                    ;; Decrement teacher active-count
+                    (let ((stats (default-to
+                            {total-created: u0, total-transferred-out: u0, total-transferred-in: u0, total-swapped: u0, active-count: u0}
+                            (map-get? teacher-stats {teacher: tx-sender}))))
+                        (map-set teacher-stats {teacher: tx-sender}
+                            (merge stats {
+                                active-count: (if (> (get active-count stats) u0)
+                                    (- (get active-count stats) u1)
+                                    u0)
+                            }))))
+                true)
+            ;; Clear room schedule entry so the room+time-block is available again
+            (map-delete room-schedule
+                {room-id: (get room-id token), time-block: (get time-block token)})
+            (ok true)
+        )
     )
 )
 
 (define-public (reactivate-slot (token-id uint) (new-time-block uint))
-    (let (
-        (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
-    )
+    (begin
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        (let (
+            (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
+        )
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
         (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
@@ -462,6 +469,7 @@
                 })))
 
         (ok true)
+        )
     )
 )
 
