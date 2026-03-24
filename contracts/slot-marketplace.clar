@@ -65,3 +65,72 @@
 (define-private (calculate-fee (price uint))
     (/ (* price (var-get marketplace-fee)) u10000)
 )
+
+;; ============================================================
+;; Public Functions
+;; ============================================================
+
+;; List a teaching slot for sale
+;; Seller must own the token in the timetablechain contract
+(define-public (list-slot (token-id uint) (price uint))
+    (begin
+        (asserts! (is-valid-price price) ERR-INVALID-PRICE)
+        (asserts! (> token-id u0) ERR-INVALID-PRICE)
+        ;; Verify caller owns the slot in timetablechain
+        (let (
+            (owner-result (contract-call? .timetablechain get-token-owner token-id))
+        )
+            (asserts! (is-ok owner-result) ERR-LISTING-NOT-FOUND)
+            (asserts! (is-eq (some tx-sender) (ok-or-none owner-result)) ERR-NOT-AUTHORIZED)
+            ;; Prevent double-listing of the same token
+            (asserts! (is-none (map-get? listed-tokens {token-id: token-id})) ERR-ALREADY-LISTED)
+            ;; Create the listing
+            (let (
+                (new-id (+ (var-get listing-counter) u1))
+                (expires (+ stacks-block-height MAX-LISTING-DURATION))
+            )
+                (map-set listings
+                    {id: new-id}
+                    {
+                        seller: tx-sender,
+                        token-id: token-id,
+                        price: price,
+                        is-active: true,
+                        created-at: stacks-block-height,
+                        expires-at: expires
+                    })
+                (map-set listed-tokens {token-id: token-id} {listing-id: new-id})
+                (var-set listing-counter new-id)
+                (ok new-id)
+            )
+        )
+    )
+)
+
+;; Helper to extract value from ok response
+(define-private (ok-or-none (result (response principal uint)))
+    (match result
+        v (some v)
+        e none
+    )
+)
+
+;; Cancel a listing - only the seller can cancel
+(define-public (cancel-listing (listing-id uint))
+    (begin
+        (asserts! (is-valid-listing-id listing-id) ERR-INVALID-LISTING-ID)
+        (let (
+            (listing (unwrap! (map-get? listings {id: listing-id}) ERR-LISTING-NOT-FOUND))
+        )
+            (asserts! (is-eq tx-sender (get seller listing)) ERR-NOT-AUTHORIZED)
+            (asserts! (get is-active listing) ERR-NOT-ACTIVE)
+            ;; Mark listing inactive
+            (map-set listings
+                {id: listing-id}
+                (merge listing {is-active: false}))
+            ;; Remove from listed-tokens index
+            (map-delete listed-tokens {token-id: (get token-id listing)})
+            (ok true)
+        )
+    )
+)
