@@ -172,3 +172,21 @@
         )
     )
 )
+
+;; Update the price of an active listing - only the seller can update
+(define-public (update-price (listing-id uint) (new-price uint))
+    (begin
+        (asserts! (is-valid-listing-id listing-id) ERR-INVALID-LISTING-ID)
+        (asserts! (is-valid-price new-price) ERR-INVALID-PRICE)
+        (let (
+            (listing (unwrap! (map-get? listings {id: listing-id}) ERR-LISTING-NOT-FOUND))
+        )
+            (asserts! (is-eq tx-sender (get seller listing)) ERR-NOT-AUTHORIZED)
+            (asserts! (get is-active listing) ERR-NOT-ACTIVE)
+            (map-set listings
+                {id: listing-id}
+                (merge listing {price: new-price}))
+            (ok true)
+        )
+    )
+)
