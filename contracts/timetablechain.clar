@@ -173,6 +173,7 @@
 (define-public (authorize-teacher (teacher principal))
     (begin
         (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq teacher CONTRACT-OWNER)) ERR-INVALID-INPUT)
         (ok (map-set authorized-teachers
             {teacher: teacher}
             {is-authorized: true}
