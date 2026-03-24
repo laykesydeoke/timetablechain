@@ -64,6 +64,11 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
+            contract-name: attendance-tracker
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/attendance-tracker.clar
+            clarity-version: 3
+        - emulated-contract-publish:
             contract-name: timetablechain
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/timetablechain.clar
