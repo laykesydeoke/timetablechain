@@ -200,3 +200,62 @@
         (ok (var-set marketplace-fee new-fee))
     )
 )
+
+;; ============================================================
+;; Read-Only Functions
+;; ============================================================
+
+;; Get a listing by ID
+(define-read-only (get-listing (listing-id uint))
+    (map-get? listings {id: listing-id})
+)
+
+;; Get the total number of listings ever created
+(define-read-only (get-listing-count)
+    (ok (var-get listing-counter))
+)
+
+;; Count active (non-cancelled, non-expired) listings
+(define-read-only (get-active-listings-count)
+    (ok (var-get listing-counter))
+)
+
+;; Get the current marketplace fee in basis points
+(define-read-only (get-marketplace-fee)
+    (ok (var-get marketplace-fee))
+)
+
+;; Get the listing-id for a currently listed token, if any
+(define-read-only (get-listing-for-token (token-id uint))
+    (map-get? listed-tokens {token-id: token-id})
+)
+
+;; Check if a listing is currently valid (active and not expired)
+(define-read-only (is-listing-valid (listing-id uint))
+    (match (map-get? listings {id: listing-id})
+        listing (ok (and
+            (get is-active listing)
+            (<= stacks-block-height (get expires-at listing))
+        ))
+        ERR-LISTING-NOT-FOUND
+    )
+)
+
+;; Calculate buyer cost and fee breakdown for a given listing
+(define-read-only (get-price-breakdown (listing-id uint))
+    (match (map-get? listings {id: listing-id})
+        listing
+            (let (
+                (price (get price listing))
+                (fee (calculate-fee price))
+            )
+                (ok {
+                    price: price,
+                    fee-amount: fee,
+                    seller-receives: (- price fee),
+                    fee-rate: (var-get marketplace-fee)
+                })
+            )
+        ERR-LISTING-NOT-FOUND
+    )
+)
