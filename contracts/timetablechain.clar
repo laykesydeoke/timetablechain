@@ -438,6 +438,7 @@
     (let (
         (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
     )
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (asserts! (not (get is-active token)) ERR-ALREADY-EXISTS)
         (asserts! (is-valid-time-block new-time-block) ERR-INVALID-INPUT)
