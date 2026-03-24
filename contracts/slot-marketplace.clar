@@ -134,3 +134,41 @@
         )
     )
 )
+
+;; Buy a listed slot using STX
+;; Transfers price - fee to seller, fee to contract owner
+(define-public (buy-slot (listing-id uint))
+    (begin
+        (asserts! (is-valid-listing-id listing-id) ERR-INVALID-LISTING-ID)
+        (let (
+            (listing (unwrap! (map-get? listings {id: listing-id}) ERR-LISTING-NOT-FOUND))
+        )
+            (asserts! (get is-active listing) ERR-NOT-ACTIVE)
+            (asserts! (not (is-eq tx-sender (get seller listing))) ERR-SELF-PURCHASE)
+            (asserts! (<= stacks-block-height (get expires-at listing)) ERR-LISTING-EXPIRED)
+            (let (
+                (price (get price listing))
+                (seller (get seller listing))
+                (token-id (get token-id listing))
+                (fee-amount (calculate-fee price))
+                (seller-amount (- price fee-amount))
+            )
+                ;; Transfer fee to contract owner
+                (asserts! (>= fee-amount u0) ERR-INSUFFICIENT-FUNDS)
+                (if (> fee-amount u0)
+                    (try! (stx-transfer? fee-amount tx-sender CONTRACT-OWNER))
+                    true)
+                ;; Transfer remaining amount to seller
+                (try! (stx-transfer? seller-amount tx-sender seller))
+                ;; Transfer slot ownership in timetablechain
+                (try! (contract-call? .timetablechain transfer token-id tx-sender))
+                ;; Mark listing inactive and remove from index
+                (map-set listings
+                    {id: listing-id}
+                    (merge listing {is-active: false}))
+                (map-delete listed-tokens {token-id: token-id})
+                (ok true)
+            )
+        )
+    )
+)
