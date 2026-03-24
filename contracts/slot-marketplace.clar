@@ -190,3 +190,13 @@
         )
     )
 )
+
+;; Set the marketplace fee (owner only)
+;; Fee is in basis points: 250 = 2.5%, max 1000 = 10%
+(define-public (set-marketplace-fee (new-fee uint))
+    (begin
+        (asserts! (is-contract-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (is-valid-fee new-fee) ERR-INVALID-PRICE)
+        (ok (var-set marketplace-fee new-fee))
+    )
+)
