@@ -10,6 +10,11 @@ path = 'contracts/timetablechain.clar'
 clarity_version = 3
 epoch = '3.0'
 
+[contracts.slot-marketplace]
+path = 'contracts/slot-marketplace.clar'
+clarity_version = 3
+epoch = '3.0'
+
 [repl.analysis]
 passes = ['check_checker']
 
