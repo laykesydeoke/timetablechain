@@ -14,14 +14,111 @@
     <meta name="twitter:description" content="Decentralized teaching slot marketplace on the Stacks blockchain.">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Network Status Bar */
+        .network-status-bar {
+            background: #1a1a2e;
+            color: #7ec8e3;
+            font-size: 0.75em;
+            text-align: right;
+            padding: 4px 20px;
+            letter-spacing: 0.04em;
+        }
+        /* Transaction status */
+        .tx-status {
+            display: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+        .tx-status--pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+        .tx-status--success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+        /* My Slots section */
+        #mySlots {
+            display: none;
+            padding: 40px 20px;
+            background: #f8f9fa;
+        }
+        #mySlots h2 {
+            margin-bottom: 20px;
+        }
+        .slot-card--mine {
+            border-left: 4px solid #0055ff;
+        }
+        .slot-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-action {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .btn-action--deactivate {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-action--deactivate:hover {
+            background: #c82333;
+        }
+        /* Expiry display */
+        .slot-expiry {
+            font-size: 0.8em;
+            color: #555;
+        }
+        /* Expired status */
+        .slot-status--expired {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        /* Active status */
+        .slot-status--active {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        /* Inactive status */
+        .slot-status--inactive {
+            background: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+    </style>
 </head>
 <body>
+    <!-- Network status bar -->
+    <div id="networkStatusBar" class="network-status-bar">
+        Network: testnet | Block: loading...
+    </div>
+
     <nav class="navbar">
         <div class="logo">TimeChain</div>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
             <li><a href="#slots">Marketplace</a></li>
+            <li><a href="#mySlots">My Slots</a></li>
         </ul>
         <div class="nav-right">
             <span id="walletStatus" class="wallet-status"></span>
@@ -32,6 +129,9 @@
     <header class="hero">
         <h1>Decentralized Teaching Slot Marketplace</h1>
         <p>Tokenize, trade, and manage teaching schedules on the Stacks blockchain.</p>
+        <div class="hero-sub">
+            Block Height: <span id="currentBlockHeight">loading...</span>
+        </div>
         <div class="hero-buttons">
             <a href="#slots" class="btn-primary">Browse Slots</a>
             <a href="#how-it-works" class="btn-outline">Learn More</a>
@@ -83,8 +183,18 @@
 
     <section id="slots" class="marketplace">
         <h2>Available Slots</h2>
+        <div id="txStatus" class="tx-status"></div>
         <div id="slotsGrid" class="slots-grid">
             <p class="placeholder">Connect your wallet to see available teaching slots</p>
+        </div>
+    </section>
+
+    <!-- My Slots section - shown after wallet connect -->
+    <section id="mySlots">
+        <h2>My Slots</h2>
+        <p class="section-subtitle">Manage your owned teaching slots</p>
+        <div id="mySlotsGrid" class="slots-grid">
+            <p class="placeholder">Loading your slots...</p>
         </div>
     </section>
 
