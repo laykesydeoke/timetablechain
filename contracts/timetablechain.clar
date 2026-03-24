@@ -401,6 +401,7 @@
     (let (
         (token (unwrap! (map-get? tokens {id: token-id}) ERR-NOT-FOUND))
     )
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
         (asserts! (is-eq tx-sender (get owner token)) ERR-NOT-SLOT-OWNER)
         (map-set tokens
             {id: token-id}
